@@ -17,6 +17,7 @@ pip install -e .
 ```
 
 It's best if we all use TUM - RPY images for development for reproducible results
+Run the following in terminal to download the data set to `./data`
 ```bash
 ./scripts/download_tum.sh
 ```
