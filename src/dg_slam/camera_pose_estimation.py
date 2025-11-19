@@ -95,6 +95,7 @@ class TUM:
     def _pose_vector_to_matrix(self, pose_vec):
         """
         Convert pose vector [tx, ty, tz, qx, qy, qz, qw] to 4x4 matrix
+        This is define in the groundtruth.txt
         """
         translation = pose_vec[:3]
         quaternion = pose_vec[3:]  # [qx, qy, qz, qw]
