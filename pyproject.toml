@@ -4,7 +4,7 @@ version = '0.99'
 description = 'Python library DG-SLAM implementation'
 readme = 'README.md'
 requires-python = '>=3.11'
-dependencies = []
+dependencies = ['numpy>=2.3.5']
 
 [project.optional-dependencies]
 dev = ['flake8', 'build']

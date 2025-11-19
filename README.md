@@ -15,3 +15,8 @@ Install the DG-SLAM package
 ```bash
 pip install -e .
 ```
+
+It's best if we all use TUM - RPY images for development for reproducible results
+```bash
+./scripts/download_tum.sh
+```
