@@ -38,15 +38,16 @@ class TUM:
         depth_data = self._load_file(self.folder_path / self.DEPTH_FILENAME)
         pose_data = self._load_file(self.folder_path / self.POSE_FILENAME)
 
-        # Parse pose data: timestamp tx ty tz qx qy qz qw
+        # Parse all data types given in tum
+        # these are stored as *.txt files
+        # Check the files for column types
+
         pose_timestamps = pose_data[:, 0].astype(np.float64)
         pose_vecs = pose_data[:, 1:].astype(np.float64)
 
-        # Parse RGB data: timestamp filename
         rgb_timestamps = image_data[:, 0].astype(np.float64)
         rgb_files = image_data[:, 1]
 
-        # Parse depth data: timestamp filename
         depth_timestamps = depth_data[:, 0].astype(np.float64)
         depth_files = depth_data[:, 1]
 
