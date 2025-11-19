@@ -16,18 +16,27 @@ class TUM:
     """
     POSE_FILENAME = "groundtruth.txt"
     DEPTH_FILENAME = "depth.txt"
-    RGB_FILENAME = "RGB.txt"
+    RGB_FILENAME = "rgb.txt"
 
     def __init__(self, folder_path: Path):
         self.folder_path = folder_path
+        self._load_folder()
 
     def _load_folder(self):
         """
         Load the TUM folder
         """
+        image_data = self._load_file(self.folder_path / self.RGB_FILENAME)
+        depth_data = self._load_file(self.folder_path / self.DEPTH_FILENAME)
+        pose_data = self._load_file(self.folder_path / self.POSE_FILENAME)
+        pose_vecs = pose_data[:, 1:].astype(np.float64)
 
     def _load_file(self, filepath: Path, skiprows: int = 0):
         """
         Load the file in the Tum
         """
         return np.loadtxt(filepath, delimiter=' ', dtype=np.str_, skiprows=skiprows)
+
+
+if __name__ == "__main__":
+    TUM(Path('data/TUM/rgbd_dataset_freiburg3_walking_rpy'))
