@@ -1,0 +1,18 @@
+[project]
+name = 'dg_slam'
+version = '0.99'
+description = 'Python library DG-SLAM implementation'
+readme = 'README.md'
+requires-python = '>=3.11'
+dependencies = []
+
+[project.optional-dependencies]
+dev = ['flake8', 'build']
+test = ['parameterized~=0.9.0']
+
+[build-system]
+requires = ['setuptools', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools.packages.find]
+where = ['src']
