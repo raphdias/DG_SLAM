@@ -22,7 +22,7 @@ class TUM:
 
     def __init__(self, folder_path: Path):
 
-        # Consider data class for initialization
+        # TODO: Consider data class for initialization
         self.folder_path = folder_path
         self.rgb_images = []
         self.depth_images = []
