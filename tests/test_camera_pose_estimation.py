@@ -93,9 +93,9 @@ class FrameInspector:
 
         # Set equal aspect ratio for point cloud
         max_range = np.pmax = np.abs(pts).max()
-        ax_pointcloud.set_xlim([-max_range, max_range])
-        ax_pointcloud.set_ylim([-max_range, max_range])
-        ax_pointcloud.set_zlim([0, max_range * 2])
+        ax_pointcloud.set_xlim([-3, 1])
+        ax_pointcloud.set_ylim([-2, 2])
+        ax_pointcloud.set_zlim([0, 2])
 
         # 5. Camera Pose Visualization
         ax_pose.set_title('Camera Pose (4x4 Matrix)')
