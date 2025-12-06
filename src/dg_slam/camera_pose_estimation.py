@@ -144,35 +144,29 @@ class TUM:
 
 
 class SceneReconstructor:
-    """
-    Reconstruct 3D scene from RGB-D frames
-    """
+    """3D scene reconstruction from RGB-D frames"""
 
     def __init__(self, fx=535.4, fy=539.2, cx=320.1, cy=247.6, depth_scale=5000.0):
-        """
-        Initialize with TUM FR3 default camera intrinsics
-        """
         self.fx = fx
         self.fy = fy
         self.cx = cx
         self.cy = cy
         self.depth_scale = depth_scale
 
-    def depth_to_pointcloud(self, depth, rgb=None):
-        """
-        Convert depth image to point cloud
-        """
+    def depth_to_pointcloud(self, depth, rgb=None, mask=None):
+        """Convert depth image to point cloud"""
         h, w = depth.shape
 
         u, v = np.meshgrid(np.arange(w), np.arange(h))
         z = depth.astype(np.float32) / self.depth_scale
 
-        # Back-project to 3D
         x = (u - self.cx) * z / self.fx
         y = (v - self.cy) * z / self.fy
 
-        # Filter invalid depths
         valid = z > 0
+        if mask is not None:
+            valid = valid & mask
+
         points = np.stack([x[valid], y[valid], z[valid]], axis=-1)
 
         if rgb is not None:
@@ -182,9 +176,7 @@ class SceneReconstructor:
         return points
 
     def transform_pointcloud(self, points, pose):
-        """
-        Transform point cloud by pose matrix
-        """
+        """Transform point cloud by pose matrix"""
         points_h = np.hstack([points, np.ones((points.shape[0], 1))])
         points_world = (pose @ points_h.T).T[:, :3]
         return points_world
