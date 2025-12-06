@@ -13,34 +13,27 @@ from scipy.spatial.transform import Rotation
 
 
 class TUM:
-    """
-    For TUM, we want to load, and do something similar to HW3
-    """
+    """TUM RGB-D dataset loader"""
     POSE_FILENAME = "groundtruth.txt"
     DEPTH_FILENAME = "depth.txt"
     RGB_FILENAME = "rgb.txt"
 
-    def __init__(self, folder_path: Path):
-
-        # TODO: Consider data class for initialization
+    def __init__(self, folder_path: Path, frame_rate=-1, max_frames=None):
         self.folder_path = folder_path
         self.rgb_images = []
         self.depth_images = []
         self.poses = []
         self.timestamps = []
+        self.seg_masks = []
+        self.frame_rate = frame_rate
+        self.max_frames = max_frames
         self._load_folder()
 
     def _load_folder(self):
-        """
-        Load the TUM folder
-        """
+        """Load the TUM folder with optional frame rate subsampling"""
         image_data = self._load_file(self.folder_path / self.RGB_FILENAME)
         depth_data = self._load_file(self.folder_path / self.DEPTH_FILENAME)
-        pose_data = self._load_file(self.folder_path / self.POSE_FILENAME)
-
-        # Parse all data types given in tum
-        # these are stored as *.txt files
-        # Check the files for column types
+        pose_data = self._load_file(self.folder_path / self.POSE_FILENAME, skiprows=1)
 
         pose_timestamps = pose_data[:, 0].astype(np.float64)
         pose_vecs = pose_data[:, 1:].astype(np.float64)
@@ -51,7 +44,7 @@ class TUM:
         depth_timestamps = depth_data[:, 0].astype(np.float64)
         depth_files = depth_data[:, 1]
 
-        # Associate RGB, depth, and pose data by timestamp
+        # Associate and optionally subsample
         self._associate_data(rgb_timestamps, rgb_files,
                              depth_timestamps, depth_files,
                              pose_timestamps, pose_vecs)
@@ -60,23 +53,39 @@ class TUM:
 
     def _associate_data(self, rgb_timestamps, rgb_files,
                         depth_timestamps, depth_files,
-                        pose_timestamps, pose_vecs, max_dt=0.02):
-        """
-        Associate RGB, depth, and pose data by matching timestamps
-        """
-        for i, rgb_ts in enumerate(rgb_timestamps):
-            # Find closest depth timestamp
-            depth_idx = np.argmin(np.abs(depth_timestamps - rgb_ts))
-            if np.abs(depth_timestamps[depth_idx] - rgb_ts) > max_dt:
+                        pose_timestamps, pose_vecs, max_dt=0.08):
+        """Associate RGB, depth, and pose data by matching timestamps"""
+        associations = []
+
+        # First pass: associate all frames
+        for i in range(len(rgb_timestamps)):
+            depth_idx = np.argmin(np.abs(depth_timestamps - rgb_timestamps[i]))
+            if np.abs(depth_timestamps[depth_idx] - rgb_timestamps[i]) > max_dt:
                 continue
 
-            # Find closest pose timestamp
-            pose_idx = np.argmin(np.abs(pose_timestamps - rgb_ts))
-            if np.abs(pose_timestamps[pose_idx] - rgb_ts) > max_dt:
+            pose_idx = np.argmin(np.abs(pose_timestamps - rgb_timestamps[i]))
+            if np.abs(pose_timestamps[pose_idx] - rgb_timestamps[i]) > max_dt:
                 continue
 
-            # Load images
-            rgb_path = self.folder_path / rgb_files[i]
+            associations.append((i, depth_idx, pose_idx))
+
+        # Second pass: subsample by frame rate
+        if self.frame_rate > 0:
+            indices = [0]
+            for i in range(1, len(associations)):
+                t0 = rgb_timestamps[associations[indices[-1]][0]]
+                t1 = rgb_timestamps[associations[i][0]]
+                if t1 - t0 > 1.0 / self.frame_rate:
+                    indices.append(i)
+            associations = [associations[i] for i in indices]
+
+        # Third pass: limit max frames
+        if self.max_frames is not None:
+            associations = associations[:self.max_frames]
+
+        # Load data
+        for (rgb_idx, depth_idx, pose_idx) in associations:
+            rgb_path = self.folder_path / rgb_files[rgb_idx]
             depth_path = self.folder_path / depth_files[depth_idx]
 
             if not rgb_path.exists() or not depth_path.exists():
@@ -85,26 +94,28 @@ class TUM:
             rgb_img = np.array(Image.open(rgb_path))
             depth_img = np.array(Image.open(depth_path))
 
-            # Convert pose to 4x4 transformation matrix
+            # Check for segmentation mask
+            seg_mask_path = self.folder_path / 'seg_mask' / rgb_files[rgb_idx].split('/')[-1]
+            if seg_mask_path.exists():
+                seg_mask = np.array(Image.open(seg_mask_path))
+            else:
+                seg_mask = None
+
             pose = self._pose_vector_to_matrix(pose_vecs[pose_idx])
 
             self.rgb_images.append(rgb_img)
             self.depth_images.append(depth_img)
             self.poses.append(pose)
-            self.timestamps.append(rgb_ts)
+            self.timestamps.append(rgb_timestamps[rgb_idx])
+            self.seg_masks.append(seg_mask)
 
     def _pose_vector_to_matrix(self, pose_vec):
-        """
-        Convert pose vector [tx, ty, tz, qx, qy, qz, qw] to 4x4 matrix
-        This is define in the groundtruth.txt
-        """
+        """Convert pose vector [tx, ty, tz, qx, qy, qz, qw] to 4x4 matrix"""
         translation = pose_vec[:3]
         quaternion = pose_vec[3:]  # [qx, qy, qz, qw]
 
-        # Convert quaternion to rotation matrix
         rotation = Rotation.from_quat(quaternion).as_matrix()
 
-        # Build 4x4 transformation matrix
         pose_matrix = np.eye(4)
         pose_matrix[:3, :3] = rotation
         pose_matrix[:3, 3] = translation
@@ -112,20 +123,17 @@ class TUM:
         return pose_matrix
 
     def get_frame(self, idx):
-        """
-        Get a specific frame by index
-        """
+        """Get a specific frame by index"""
         return {
             'rgb': self.rgb_images[idx],
             'depth': self.depth_images[idx],
             'pose': self.poses[idx],
-            'timestamp': self.timestamps[idx]
+            'timestamp': self.timestamps[idx],
+            'seg_mask': self.seg_masks[idx]
         }
 
     def _load_file(self, filepath: Path, skiprows: int = 0):
-        """
-        Load the file in the Tum
-        """
+        """Load text file"""
         return np.loadtxt(filepath, delimiter=' ', dtype=np.str_, skiprows=skiprows)
 
     def __len__(self):
@@ -156,10 +164,7 @@ class SceneReconstructor:
         """
         h, w = depth.shape
 
-        # Create pixel grid
         u, v = np.meshgrid(np.arange(w), np.arange(h))
-
-        # Convert depth to meters
         z = depth.astype(np.float32) / self.depth_scale
 
         # Back-project to 3D
