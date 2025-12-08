@@ -6,6 +6,8 @@ where I_i in R^3 and D_i in R,
 2. Reconstruct the static 3D scene
     G = {G_i: (mu_i, sigma_i, alpha_i, h_i)}
 """
+import argparse
+from droid_slam.droid import Droid
 import numpy as np
 from pathlib import Path
 from PIL import Image
@@ -180,6 +182,26 @@ class SceneReconstructor:
         points_h = np.hstack([points, np.ones((points.shape[0], 1))])
         points_world = (pose @ points_h.T).T[:, :3]
         return points_world
+
+
+class PoseEstimator:
+    """Wraps DROID-SLAM for pose estimation"""
+
+    def __init__(self, model_path="droid.pth", image_size=(240, 320)):
+        args = argparse.Namespace(weights=model_path, image_size=image_size, disable_vis=True)
+        self.droid = Droid(args)
+
+    def run(self, dataset):
+        """Estimate poses for all frames in dataset"""
+        for frame in dataset:
+            # Convert RGB image to required format (BGR, normalized, etc.)
+            image = frame['rgb']  # e.g., HxWx3 numpy array
+            timestamp = frame['timestamp']
+            # Track frame (monocular; intrinsics can be passed if needed)
+            self.droid.track(timestamp, image)
+        # Terminate and retrieve the estimated trajectory (list of 4x4 poses)
+        traj = self.droid.terminate()
+        return traj
 
 
 if __name__ == "__main__":
