@@ -21,3 +21,11 @@ Run the following in terminal to download the data set to `./data`
 ```bash
 ./scripts/download_tum.sh
 ```
+
+
+## NOTES
+
+- We have camera pose estimation and depth warp 
+- We need coarse stage approx. DROID-SLAM (? docker-container ?) 
+- Fine Stage Gaussian (Gaussian only have pseudo right now)
+- Verification
