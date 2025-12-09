@@ -339,3 +339,100 @@ class DepthWarper:
         rays_o = np.tile(t, (len(u), 1))  # Ray origin is camera center
 
         return rays_o, rays_d, z, rgb_values
+
+
+class MotionMaskGenerator:
+    """
+    Generates motion masks by fusing depth warp masks and semantic masks.
+    Implements Section 3.2 from the paper.
+    """
+
+    def __init__(self, window_size: int = 4, depth_threshold: float = 0.6):
+        self.window_size = window_size
+        self.depth_threshold = depth_threshold
+        self.depth_warper = None
+
+    def set_depth_warper(self, warper: DepthWarper):
+        """Set the depth warper instance."""
+        self.depth_warper = warper
+
+    def generate_depth_warp_mask(
+        self,
+        keyframe_i: dict,
+        keyframe_j: dict,
+        threshold: float = None
+    ) -> np.ndarray:
+        """
+        Generate depth warp mask between two keyframes.
+
+        Args:
+            keyframe_i: Source keyframe dict
+            keyframe_j: Target keyframe dict
+            threshold: Depth residual threshold (uses self.depth_threshold if None)
+
+        Returns:
+            warp_mask: (H, W) boolean mask (True = static)
+        """
+        if threshold is None:
+            threshold = self.depth_threshold
+
+        if self.depth_warper is None:
+            raise ValueError("Depth warper not set. Call set_depth_warper first.")
+
+        # Use depth warper to compute static mask
+        static_mask = self.depth_warper.depth_warp_to_mask(
+            keyframe_i,
+            keyframe_j,
+            color_threshold=0.3
+        )
+
+        return static_mask
+
+    def generate_motion_mask(
+        self,
+        current_keyframe: dict,
+        keyframe_window: list[dict],
+        use_semantic: bool = True
+    ) -> np.ndarray:
+        """
+        Generate final motion mask using spatio-temporal consistency.
+        Implements Eq. 6-7 from the paper.
+
+        Args:
+            current_keyframe: Current keyframe dict with 'rgb', 'depth', 'pose', 'seg_mask'
+            keyframe_window: List of associated keyframes within sliding window
+            use_semantic: Whether to fuse with semantic mask
+
+        Returns:
+            motion_mask: (H, W) boolean mask (True = static, False = dynamic)
+        """
+        H, W = current_keyframe['depth'].shape
+
+        # Initialize with all static
+        combined_warp_mask = np.ones((H, W), dtype=bool)
+
+        # Compute depth warp masks across temporal window
+        for kf in keyframe_window:
+            warp_mask = self.generate_depth_warp_mask(current_keyframe, kf)
+            # Intersection for spatial-temporal consistency (Eq. 7)
+            combined_warp_mask = combined_warp_mask & warp_mask
+
+        # Start with depth warp mask
+        final_mask = combined_warp_mask.copy()
+
+        # Fuse with semantic mask if available
+        if use_semantic and current_keyframe.get('seg_mask') is not None:
+            seg_mask = current_keyframe['seg_mask']
+
+            # Semantic mask: True where static objects are present
+            # Assume seg_mask marks dynamic objects (needs inversion)
+            if seg_mask.dtype == bool:
+                semantic_static_mask = ~seg_mask
+            else:
+                # If integer labels, assume 0 = static, >0 = dynamic classes
+                semantic_static_mask = (seg_mask == 0)
+
+            # Union operation: static if either depth warp OR semantic says static
+            final_mask = combined_warp_mask | semantic_static_mask
+
+        return final_mask
