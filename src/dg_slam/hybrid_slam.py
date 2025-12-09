@@ -3,9 +3,10 @@ Complete Hybrid SLAM implementation following DG-SLAM architecture.
 Implements coarse-to-fine camera tracking with motion mask generation.
 """
 import numpy as np
-from dg_slam.camera_pose_estimation import PoseEstimator, SceneReconstructor
+from dg_slam.camera_pose_estimation import SceneReconstructor
 from dg_slam.gaussian import GaussianModel, AdaptiveGaussianManager
 from dg_slam.depth_warp import DepthWarper, MotionMaskGenerator
+from dg_slam.coarse_tracker import Stage1Tracker
 
 
 class KeyframeSelector:
@@ -100,8 +101,10 @@ class HybridSLAM:
         tracking_iterations: int = 20,
         mapping_iterations: int = 40
     ):
+        # Droid Weights
+        self.checkpoint_path = ...
+
         # Core components
-        self.pose_estimator = PoseEstimator()
         self.reconstructor = SceneReconstructor(fx, fy, cx, cy, depth_scale)
         self.depth_warper = DepthWarper(fx, fy, cx, cy, depth_scale)
 
@@ -172,7 +175,8 @@ s
         print("Stage 1: Coarse pose estimation via DROID-SLAM...")
 
         # Run DROID-SLAM on all frames
-        coarse_poses = self.pose_estimator.run(dataset)
+        tracker = Stage1Tracker(self.checkpoint_path)
+        coarse_poses = tracker.run(dataset)['poses']
 
         if max_frames is not None:
             coarse_poses = coarse_poses[:max_frames]
