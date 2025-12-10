@@ -7,7 +7,7 @@ from pathlib import Path
 from dg_slam.fine_tracker import FineTracker
 from dg_slam.coarse_tracker import Stage1Tracker
 from dg_slam.camera_pose_estimation import SceneReconstructor
-from dg_slam.gaussian import GaussianModel, AdaptiveGaussianManager, Gaussian
+from dg_slam.gaussian_model import GaussianModel, AdaptiveGaussianManager, Gaussian
 from dg_slam.depth_warp import DepthWarper, MotionMaskGenerator
 
 
@@ -214,7 +214,7 @@ s
         coarse_pose: np.ndarray,
         motion_mask: np.ndarray,
         gaussian_model: GaussianModel
-    ) -> np.ndarray:
+    ) -> tuple[np.ndarray, dict]:
         """
         Fine stage: Refine pose using Gaussian splatting photometric alignment.
         Implements Eq. 10 from Section 3.3.
@@ -229,25 +229,44 @@ s
             gaussian_model: Current Gaussian scene model
 
         Returns:
-            Refined pose (4x4 matrix)
+            refined_pose: Refined camera pose (4x4 matrix)
+            tracking_info: Dictionary containing tracking statistics
         """
+
+        # TODO: Issue with inputs currently, remove this line later
+        if coarse_pose.shape != (4, 4):
+            raise ValueError(f"Expected coarse_pose shape (4, 4), got {coarse_pose.shape}")
+        if 'rgb' not in frame or 'depth' not in frame:
+            raise ValueError("Frame must contain 'rgb' and 'depth' keys")
+
         # Start from coarse pose
         refined_pose = coarse_pose.copy()
 
-        # Iteratively refine pose (placeholder for gradient-based optimization)
-        for iter_idx in range(self.tracking_iterations):
-            # In practice, this would:
-            # 1. Render image using gaussian_model at current refined_pose
-            # 2. Compute photometric + depth loss (Eq. 10) using motion_mask
-            # 3. Compute gradients w.r.t. pose parameters
-            # 4. Update refined_pose
+        # Use the fine tracker to refine the pose
+        refined_pose, tracking_info = self.fine_tracker.track_frame(
+            frame=frame,
+            coarse_pose=coarse_pose,
+            motion_mask=motion_mask,
+            gaussians=gaussian_model
+        )
 
-            # Placeholder: small random perturbation for demonstration
-            if iter_idx == 0:
-                # First iteration: validate coarse pose
-                pass
+        # Validate refined pose
+        if np.isnan(refined_pose).any() or np.isinf(refined_pose).any():
+            print("  Warning: Invalid refined pose detected, using coarse pose")
+            refined_pose = coarse_pose.copy()
+            tracking_info['fallback_to_coarse'] = True
 
-        return refined_pose
+        # Check tracking quality
+        pose_delta = tracking_info['pose_delta']
+        if pose_delta > 0.5:  # Large correction threshold
+            print(f"  Warning: Large pose correction: {pose_delta:.4f}m")
+            tracking_info['large_correction'] = True
+
+        # Log final tracking loss
+        final_loss = tracking_info['final_loss']['total']
+        print(f"  Fine tracking complete: Final loss = {final_loss:.6f}")
+
+        return refined_pose, tracking_info
 
     def update_gaussian_map(
         self,
@@ -276,6 +295,7 @@ s
         H, W = frame['depth'].shape
         sample_step = 10  # Sample every 10 pixels for efficiency
 
+        new_gaussians_count = 0
         for v in range(0, H, sample_step):
             for u in range(0, W, sample_step):
                 if not motion_mask[v, u]:
