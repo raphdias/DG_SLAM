@@ -340,7 +340,8 @@ def quad2rotation(quad):
     bs = quad.shape[0]
     qr, qi, qj, qk = quad[:, 0], quad[:, 1], quad[:, 2], quad[:, 3]
     two_s = 2.0 / (quad * quad).sum(-1)
-    rot_mat = torch.zeros(bs, 3, 3).to(quad.get_device())
+    rot_mat = torch.zeros(bs, 3, 3, device=quad.device)
+
     rot_mat[:, 0, 0] = 1 - two_s * (qj ** 2 + qk ** 2)
     rot_mat[:, 0, 1] = two_s * (qi * qj - qk * qr)
     rot_mat[:, 0, 2] = two_s * (qi * qk + qj * qr)
