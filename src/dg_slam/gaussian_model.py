@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+from dg_slam.gaussian.sh_utils import RGB2SH
 
 
 class Gaussian:
@@ -12,8 +14,9 @@ class Gaussian:
 class GaussianModel:
     """Scene model of 3D Gaussians for fine alignment."""
 
-    def __init__(self, points, colors):
+    def __init__(self, points, colors, device='cuda:0'):
         # Initialize each point as a Gaussian blob with small sigma and color
+        N = len(points)
         self.gaussians = []
         for p, c in zip(points, colors):
             sigma = np.array([0.05, 0.05, 0.05])  # small initial extent
@@ -21,30 +24,47 @@ class GaussianModel:
             gaussian = Gaussian(mu=p, sigma=sigma, alpha=alpha, feature=c)
             self.gaussians.append(gaussian)
 
-    def photometric_error(self, poses, images, intrinsics):
-        """
-        Compute total photometric error of projected Gaussians in each image.
-        (Placeholder: normally differentiable rendering would be used.)
-        """
-        error = 0.0
-        # For each view, project gaussians and compare rendered color vs image color.
-        # Here, we simply sum a dummy error to illustrate the pipeline.
-        return error
+        # Initialize PyTorch tensors for Gaussian Splatting
+        self._xyz = torch.from_numpy(points).float().to(device)
+        self._features_dc = torch.from_numpy(RGB2SH(colors)).float().unsqueeze(1).to(device)  # (N, 1, 3)
+        self._features_rest = torch.zeros((N, 15, 3), device=device)  # Higher order SH
+        self._scaling = torch.log(torch.ones((N, 3), device=device) * 0.05)  # Log scale
+        self._rotation = torch.zeros((N, 4), device=device)  # Quaternion
+        self._rotation[:, 0] = 1.0  # Identity rotation (w=1)
+        self._opacity = torch.ones((N, 1), device=device) * 0.5  # Logit space
 
-    def optimize_poses(self, dataset, intrinsics, n_iters=10):
-        """
-        Jointly optimize camera poses (and optionally Gaussian parameters) by minimizing photometric error.
-        (This is a placeholder for gradient-based optimization.)
-        """
-        for it in range(n_iters):
-            # Compute photometric error
-            err = self.photometric_error(dataset.poses, [f['rgb'] for f in dataset], intrinsics)
-            print(f"  Iter {it}: photometric error = {err:.4f}")
-            # Here we would compute gradients w.r.t. poses and update them.
-            # For simplicity, we pretend to adjust poses slightly.
-            # e.g., dataset.poses = updated_poses_from_optimization
-        # After optimization, dataset.poses contains refined poses.
-        return dataset.poses
+        self.max_sh_degree = 0  # Start with DC component only
+        self.active_sh_degree = 0
+
+    def get_xyz(self):
+        return self._xyz
+
+    def get_features_dc(self):
+        return self._features_dc
+
+    def get_features_rest(self):
+        return self._features_rest
+
+    def get_scaling(self):
+        return torch.exp(self._scaling)
+
+    def get_rotation(self):
+        return self._rotation / (torch.norm(self._rotation, dim=-1, keepdim=True) + 1e-8)
+
+    def get_opacity(self):
+        return torch.sigmoid(self._opacity)
+
+    def pts_num(self):
+        return self._xyz.shape[0]
+
+    def input_pos(self):
+        return self._xyz.detach().cpu().numpy()
+
+    def input_rgb(self):
+        # Convert SH back to RGB
+        from dg_slam.gaussian.sh_utils import SH2RGB
+        rgb = SH2RGB(self._features_dc.squeeze(1))
+        return rgb.detach().cpu().numpy()
 
 
 class AdaptiveGaussianManager:
@@ -145,3 +165,21 @@ class AdaptiveGaussianManager:
             max_scale > self.tau_s1 or
             scale_ratio > self.tau_s2
         )
+
+    def get_scaling(self):
+        return self._scaling
+
+    def get_rotation(self):
+        return self._rotation
+
+    def get_xyz(self):
+        return self._xyz
+
+    def get_features_dc(self):
+        return self._features_dc
+
+    def get_features_rest(self):
+        return self._features_rest
+
+    def get_opacity(self):
+        return self._opacity

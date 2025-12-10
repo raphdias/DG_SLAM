@@ -20,7 +20,7 @@ def render(xyz, features_dc, features_rest, opacity, scaling, rotation, active_s
            camera_center, world_view_transform, projection_matrix, FoVx, FoVy, image_height, image_width,
            scaling_modifier=1.0, override_color=None):
     """
-    Render the scene. 
+    Render the scene.
 
     Background tensor (bg_color) must be on GPU!
     """
