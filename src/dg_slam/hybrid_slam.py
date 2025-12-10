@@ -3,11 +3,12 @@ Complete Hybrid SLAM implementation following DG-SLAM architecture.
 Implements coarse-to-fine camera tracking with motion mask generation.
 """
 import numpy as np
-from dg_slam.camera_pose_estimation import SceneReconstructor
-from dg_slam.gaussian import GaussianModel, AdaptiveGaussianManager
-from dg_slam.depth_warp import DepthWarper, MotionMaskGenerator
-from dg_slam.coarse_tracker import Stage1Tracker
 from pathlib import Path
+from dg_slam.fine_tracker import FineTracker
+from dg_slam.coarse_tracker import Stage1Tracker
+from dg_slam.camera_pose_estimation import SceneReconstructor
+from dg_slam.gaussian import GaussianModel, AdaptiveGaussianManager, Gaussian
+from dg_slam.depth_warp import DepthWarper, MotionMaskGenerator
 
 
 class KeyframeSelector:
@@ -98,12 +99,16 @@ class HybridSLAM:
         fy: float,
         cx: float,
         cy: float,
+        H: int = 480,
+        W: int = 640,
         depth_scale: float = 5000.0,
         tracking_iterations: int = 20,
         mapping_iterations: int = 40,
         checkpoint_path=Path('checkpoints/droid.pth'),
-        device: str = 'cuda'
+        device: str = 'cuda:0'
     ):
+        self.H = H
+        self.W = W
         # Droid Weights
         self.checkpoint_path = checkpoint_path
         self.device = device
@@ -129,6 +134,22 @@ class HybridSLAM:
         self.lambda_1 = 0.9  # RGB loss weight
         self.lambda_2 = 0.2  # SSIM loss weight
         self.lambda_3 = 0.1  # Depth loss weight
+
+        # Initialize fine tracker
+        self.fine_tracker = FineTracker(
+            fx=fx,
+            fy=fy,
+            cx=cx,
+            cy=cy,
+            H=H,
+            W=W,
+            tracking_iterations=tracking_iterations,
+            lambda_rgb=self.lambda_1,
+            lambda_ssim=self.lambda_2,
+            lambda_depth=self.lambda_3,
+            learning_rate=0.001,
+            device=device
+        )
 
     def initialize_map(self, first_frame: dict) -> GaussianModel:
         """
@@ -176,8 +197,8 @@ s
         Returns:
             list of coarse pose estimates (4x4 matrices)
         """
-        print("Stage 1: Coarse pose estimation via DROID-SLAM...")
 
+        print("Stage 1: Coarse pose estimation via DROID-SLAM...")
         tracker = Stage1Tracker(self.checkpoint_path, device=self.device)
         result = tracker.run(dataset)
         coarse_poses = result['poses']
@@ -197,6 +218,9 @@ s
         """
         Fine stage: Refine pose using Gaussian splatting photometric alignment.
         Implements Eq. 10 from Section 3.3.
+
+        This method performs gradient-based optimization to refine the camera pose
+        by minimizing photometric and geometric errors between rendered and observed images.
 
         Args:
             frame: Current frame dict
@@ -257,14 +281,12 @@ s
                 if not motion_mask[v, u]:
                     continue  # Skip dynamic regions
 
-                # Check if we should add Gaussian here
-                # (In practice, check accumulated_opacity and depth_residual)
-                accumulated_opacity = 0.3  # Placeholder
-                depth_residual = 0.05  # Placeholder
-
+                # Check if we should add Gaussian here,
+                # We're using placeholder weights for now, in practice
+                # should be rendered and checked
                 if self.gaussian_manager.should_add_gaussian(
-                    accumulated_opacity,
-                    depth_residual
+                    accumulated_opacity=0.3,
+                    depth_residual=0.05
                 ):
                     # Add Gaussian at this location
                     depth_val = frame['depth'][v, u]
@@ -276,9 +298,8 @@ s
                         point_cam = np.array([x_cam, y_cam, z])
                         point_world = (pose[:3, :3] @ point_cam) + pose[:3, 3]
 
-                        color = frame['rgb'][v, u] / 255.0
+                        color = frame['rgb'][v, u] / 255.0 if frame['rgb'][v, u].max() > 1 else frame['rgb'][v, u]
 
-                        from dg_slam.gaussian import Gaussian
                         sigma = np.array([density_map[v, u]] * 3)
                         new_gaussian = Gaussian(
                             mu=point_world,
@@ -287,17 +308,24 @@ s
                             feature=color
                         )
                         gaussian_model.gaussians.append(new_gaussian)
+                        new_gaussians_count += 1
 
         # Prune invalid Gaussians
         valid_gaussians = []
+        pruned_count = 0
         for gaussian in gaussian_model.gaussians:
             if not self.gaussian_manager.should_prune_gaussian(
                 gaussian.alpha,
                 gaussian.sigma
             ):
                 valid_gaussians.append(gaussian)
+            else:
+                pruned_count += 1
 
         gaussian_model.gaussians = valid_gaussians
+
+        if new_gaussians_count > 0 or pruned_count > 0:
+            print(f" Map update: +{new_gaussians_count} Gaussians, -{pruned_count} pruned")
 
         return gaussian_model
 
@@ -339,6 +367,7 @@ s
         # --- Stage 3: Fine Tracking and Mapping ---
         print("\nStage 2: Fine pose refinement and mapping...")
         refined_poses = []
+        tracking_stats = []
 
         for frame_idx in range(n_frames):
             frame = dataset[frame_idx]
@@ -365,13 +394,14 @@ s
                 motion_mask = np.ones_like(frame['depth'], dtype=bool)
 
             # Fine tracking
-            refined_pose = self.fine_tracking(
+            refined_pose, tracking_info = self.fine_tracking(
                 frame,
                 coarse_poses[frame_idx],
                 motion_mask,
                 self.gaussian_model
             )
             refined_poses.append(refined_pose)
+            tracking_stats.append(tracking_info)
 
             # Update map for keyframes
             if len(self.keyframe_selector.keyframes) > 0 and \
@@ -384,9 +414,11 @@ s
                 )
 
             if (frame_idx + 1) % 10 == 0:
-                print(f"  Processed {frame_idx + 1}/{n_frames} frames")
-                print(f"    Gaussians: {len(self.gaussian_model.gaussians)}")
-                print(f"    Keyframes: {len(self.keyframe_selector.keyframes)}")
+                avg_loss = np.mean([s['final_loss']['total'] for s in tracking_stats[-10:]])
+                print(f"  Processed {frame_idx + 1}/{n_frames} frames "
+                      f"(Avg loss: {avg_loss:.6f})")
+                print(f"    Gaussians: {len(self.gaussian_model.gaussians)}, "
+                      f"Keyframes: {len(self.keyframe_selector.keyframes)}")
 
         print("\n" + "=" * 60)
         print("DG-SLAM complete!")
@@ -394,6 +426,12 @@ s
         print(f"  Total frames: {n_frames}")
         print(f"  Keyframes: {len(self.keyframe_selector.keyframes)}")
         print(f"  Gaussians: {len(self.gaussian_model.gaussians)}")
+
+        # Tracking quality statistics
+        avg_final_loss = np.mean([s['final_loss']['total'] for s in tracking_stats])
+        avg_pose_delta = np.mean([s['pose_delta'] for s in tracking_stats])
+        print(f"  Average tracking loss: {avg_final_loss:.6f}")
+        print(f"  Average pose correction: {avg_pose_delta:.4f}m")
 
         # Reconstruct final point cloud
         all_points = []
