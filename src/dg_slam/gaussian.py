@@ -132,9 +132,16 @@ class AdaptiveGaussianManager:
         """
         max_scale = np.max(scale_vector)
         min_scale = np.min(scale_vector)
-        scale_ratio = max_scale / (min_scale + 1e-8)
+
+        # Better protection against division by zero
+        if min_scale < 1e-6:
+            scale_ratio = float('inf')
+        else:
+            scale_ratio = max_scale / min_scale
 
         # Prune based on three criteria (Eq. 13)
         return (
-            alpha < self.tau_alpha or max_scale > self.tau_s1 or scale_ratio > self.tau_s2
+            alpha < self.tau_alpha or
+            max_scale > self.tau_s1 or
+            scale_ratio > self.tau_s2
         )
