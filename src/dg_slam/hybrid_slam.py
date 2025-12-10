@@ -101,10 +101,12 @@ class HybridSLAM:
         depth_scale: float = 5000.0,
         tracking_iterations: int = 20,
         mapping_iterations: int = 40,
-        checkpoint_path=Path('checkpoints/droid.pth')
+        checkpoint_path=Path('checkpoints/droid.pth'),
+        device: str = 'cuda'
     ):
         # Droid Weights
         self.checkpoint_path = checkpoint_path
+        self.device = device
 
         # Core components
         self.reconstructor = SceneReconstructor(fx, fy, cx, cy, depth_scale)
@@ -176,9 +178,9 @@ s
         """
         print("Stage 1: Coarse pose estimation via DROID-SLAM...")
 
-        # Run DROID-SLAM on all frames
-        tracker = Stage1Tracker(self.checkpoint_path)
-        coarse_poses = tracker.run(dataset)['poses']
+        tracker = Stage1Tracker(self.checkpoint_path, device=self.device)
+        result = tracker.run(dataset)
+        coarse_poses = result['poses']
 
         if max_frames is not None:
             coarse_poses = coarse_poses[:max_frames]
@@ -388,7 +390,7 @@ s
 
         print("\n" + "=" * 60)
         print("DG-SLAM complete!")
-        print(f"Final statistics:")
+        print("Final statistics:")
         print(f"  Total frames: {n_frames}")
         print(f"  Keyframes: {len(self.keyframe_selector.keyframes)}")
         print(f"  Gaussians: {len(self.gaussian_model.gaussians)}")
