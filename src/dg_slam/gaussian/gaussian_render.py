@@ -3,7 +3,7 @@
 # GRAPHDECO research group, https://team.inria.fr/graphdeco
 # All rights reserved.
 #
-# This software is free for non-commercial, research and evaluation use 
+# This software is free for non-commercial, research and evaluation use
 # under the terms of the LICENSE.md file.
 #
 # For inquiries contact  george.drettakis@inria.fr
@@ -15,12 +15,13 @@ from diff_gaussian_rasterization_depth_pose import GaussianRasterizationSettings
 from dg_slam.gaussian_model import GaussianModel
 from dg_slam.gaussian.sh_utils import eval_sh
 
-def render(xyz, features_dc, features_rest, opacity, scaling, rotation, active_sh_degree, max_sh_degree,\
-            camera_center, world_view_transform, projection_matrix, FoVx, FoVy, image_height, image_width,\
-                 scaling_modifier = 1.0, override_color = None):
+
+def render(xyz, features_dc, features_rest, opacity, scaling, rotation, active_sh_degree, max_sh_degree,
+           camera_center, world_view_transform, projection_matrix, FoVx, FoVy, image_height, image_width,
+           scaling_modifier=1.0, override_color=None):
     """
     Render the scene. 
-    
+
     Background tensor (bg_color) must be on GPU!
     """
     bg_color = torch.tensor([0, 0, 0], dtype=torch.float32, device="cuda")
@@ -55,7 +56,7 @@ def render(xyz, features_dc, features_rest, opacity, scaling, rotation, active_s
         debug=debug
     )
 
-    rasterizer = GaussianRasterizer(raster_settings=raster_settings) 
+    rasterizer = GaussianRasterizer(raster_settings=raster_settings)
 
     means3D = xyz
     means2D = screenspace_points
@@ -75,9 +76,9 @@ def render(xyz, features_dc, features_rest, opacity, scaling, rotation, active_s
     colors_precomp = None
     if override_color is None:
         if convert_SHs_python:
-            shs_view = features.transpose(1, 2).view(-1, 3, (max_sh_degree+1)**2)
+            shs_view = features.transpose(1, 2).view(-1, 3, (max_sh_degree + 1)**2)
             dir_pp = (xyz - camera_center.repeat(features.shape[0], 1))
-            dir_pp_normalized = dir_pp/dir_pp.norm(dim=1, keepdim=True)
+            dir_pp_normalized = dir_pp / dir_pp.norm(dim=1, keepdim=True)
             sh2rgb = eval_sh(active_sh_degree, shs_view, dir_pp_normalized)
             colors_precomp = torch.clamp_min(sh2rgb + 0.5, 0.0)
         else:
@@ -85,22 +86,22 @@ def render(xyz, features_dc, features_rest, opacity, scaling, rotation, active_s
     else:
         colors_precomp = override_color
 
-    # Rasterize visible Gaussians to image, obtain their radii (on screen). 
+    # Rasterize visible Gaussians to image, obtain their radii (on screen).
     rendered_image, radii, depth, acc = rasterizer(
-        means3D = means3D,
-        means2D = means2D,
-        shs = shs,
-        colors_precomp = colors_precomp,
-        opacities = opacity,
-        scales = scales,
-        rotations = rotations,
-        cov3D_precomp = cov3D_precomp)
+        means3D=means3D,
+        means2D=means2D,
+        shs=shs,
+        colors_precomp=colors_precomp,
+        opacities=opacity,
+        scales=scales,
+        rotations=rotations,
+        cov3D_precomp=cov3D_precomp)
 
     # Those Gaussians that were frustum culled or had a radius of 0 were not visible.
     # They will be excluded from value updates used in the splitting criteria.
     return {"render": rendered_image,
             "viewspace_points": screenspace_points,
-            "visibility_filter" : radii > 0,
+            "visibility_filter": radii > 0,
             "radii": radii,
             "depth": depth,
             "acc": acc}
