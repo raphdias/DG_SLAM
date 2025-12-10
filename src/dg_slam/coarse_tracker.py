@@ -105,13 +105,29 @@ class Stage1Tracker:
         print(f"Loaded {loaded_keys}/{len(model_dict)} parameters")
 
     def run(self, dataset):
-        N = dataset.rgb_images.shape[0]
-        print("\nStep 1: DROID-SLAM...")
+        N = len(dataset.rgb_images)
+        device = self.device
+
+        # TODO: Way better to just hander this in the earlier phase
+        rgb_tensors = torch.stack([
+            torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
+            for img in dataset.rgb_images
+        ]).to(device)
+
+        depth_tensors = torch.stack([
+            torch.from_numpy(depth).float() / dataset.depth_scale if hasattr(dataset,
+                                                                             'depth_scale') else torch.from_numpy(depth).float() / 5000.0
+            for depth in dataset.depth_images
+        ]).to(device)
+
         with torch.no_grad():
-            poses_quat = self.model(dataset.rgb_images, dataset.depth_images, num_iterations=8)
+            poses_quat = self.model(rgb_tensors, depth_tensors, num_iterations=8)
         poses_matrix = quaternion_to_matrix(poses_quat)
 
+        # Convert to numpy for compatibility with rest of codebase
+        poses_numpy = [pose.cpu().numpy() for pose in poses_matrix]
+
         return {
-            'poses': poses_matrix,
+            'poses': poses_numpy,
             'num_frames': N
         }
