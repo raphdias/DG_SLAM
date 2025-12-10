@@ -7,6 +7,7 @@ from dg_slam.camera_pose_estimation import SceneReconstructor
 from dg_slam.gaussian import GaussianModel, AdaptiveGaussianManager
 from dg_slam.depth_warp import DepthWarper, MotionMaskGenerator
 from dg_slam.coarse_tracker import Stage1Tracker
+from pathlib import Path
 
 
 class KeyframeSelector:
@@ -99,10 +100,11 @@ class HybridSLAM:
         cy: float,
         depth_scale: float = 5000.0,
         tracking_iterations: int = 20,
-        mapping_iterations: int = 40
+        mapping_iterations: int = 40,
+        checkpoint_path=Path('checkpoints/droid.pth')
     ):
         # Droid Weights
-        self.checkpoint_path = ...
+        self.checkpoint_path = checkpoint_path
 
         # Core components
         self.reconstructor = SceneReconstructor(fx, fy, cx, cy, depth_scale)
@@ -180,8 +182,6 @@ s
 
         if max_frames is not None:
             coarse_poses = coarse_poses[:max_frames]
-
-        print(f"  Estimated {len(coarse_poses)} coarse poses")
 
         return coarse_poses
 
