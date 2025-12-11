@@ -3,6 +3,14 @@ import torch
 from dg_slam.gaussian.sh_utils import RGB2SH
 
 
+class Gaussian:
+    def __init__(self, mu, sigma, alpha, feature):
+        self.mu = mu            # center (3D)
+        self.sigma = sigma      # anisotropic covariance (3-vector for simplicity)
+        self.alpha = alpha      # opacity
+        self.feature = feature  # e.g. RGB color
+
+
 class GaussianModel:
     """Scene model of 3D Gaussians for fine alignment."""
 
