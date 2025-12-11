@@ -149,8 +149,7 @@ class FineTracker:
             'visibility_filter': render_pkg['visibility_filter']
         }
 
-
-def compute_tracking_loss(
+    def compute_tracking_loss(
         self,
         rendered_rgb: torch.Tensor,
         rendered_depth: torch.Tensor,
@@ -215,7 +214,6 @@ def compute_tracking_loss(
         }
 
         return total_loss, loss_dict
-
 
     def track_frame(self, frame: dict, coarse_pose: np.ndarray, motion_mask: np.ndarray, gaussians, verbose: bool = False) -> tuple:
         gt_rgb = torch.from_numpy(frame['rgb']).to(self.device).float()
