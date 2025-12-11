@@ -246,6 +246,13 @@ def compute_tracking_loss(
                 rendered_rgb = rendered_rgb.to(gt_rgb.device)
             if rendered_depth.device != gt_depth.device:
                 rendered_depth = rendered_depth.to(gt_depth.device)
+            print("=== SHAPES BEFORE CALL ===")
+            print("rendered_rgb:", type(rendered_rgb), rendered_rgb.shape if hasattr(rendered_rgb, 'shape') else None)
+            print("rendered_depth:", type(rendered_depth), rendered_depth.shape if hasattr(rendered_depth, 'shape') else None)
+            print("gt_rgb:", type(gt_rgb), gt_rgb.shape if hasattr(gt_rgb, 'shape') else None)
+            print("gt_depth:", type(gt_depth), gt_depth.shape if hasattr(gt_depth, 'shape') else None)
+            print("motion_mask:", type(motion_mask_tensor), motion_mask_tensor.shape if hasattr(motion_mask_tensor, 'shape') else None)
+
             loss, loss_dict = self.compute_tracking_loss(
                 rendered_rgb=rendered_rgb,
                 rendered_depth=rendered_depth,
