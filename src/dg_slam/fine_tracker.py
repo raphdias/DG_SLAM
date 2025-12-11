@@ -155,17 +155,25 @@ class FineTracker:
             mask = mask.unsqueeze(0)
         rgb_loss = l1_loss(rendered_rgb * mask, gt_rgb * mask)
         ssim_loss = 1.0 - ssim((rendered_rgb * mask).unsqueeze(0), (gt_rgb * mask).unsqueeze(0))
-        valid_depth = (gt_depth > 0) & (motion_mask.bool())
+
+        # Ensure depth + mask shapes match BEFORE using them
         if motion_mask.dim() == 2:
             motion_mask = motion_mask.unsqueeze(0)
+
         if gt_depth.dim() == 2:
             gt_depth = gt_depth.unsqueeze(0)
 
-        valid_depth = (gt_depth > 0) & (motion_mask.bool())
+        # Now safe to compute valid_depth
+        valid_depth = (gt_depth > 0) & motion_mask.bool()
+
         if valid_depth.sum() > 0:
-            depth_loss = l1_loss(rendered_depth[valid_depth], gt_depth[valid_depth])
+            depth_loss = l1_loss(
+                rendered_depth[valid_depth],
+                gt_depth[valid_depth]
+            )
         else:
             depth_loss = torch.tensor(0.0, device=self.device)
+
         total_loss = self.lambda_rgb * rgb_loss + self.lambda_ssim * ssim_loss + self.lambda_depth * depth_loss
         loss_dict = {
             'total': total_loss.item(),
