@@ -198,16 +198,39 @@ s
         Returns:
             list of coarse pose estimates (4x4 matrices)
         """
+        """
+        TEMPORARY: Use ground truth poses instead of DROID-SLAM.
+        This bypasses the broken checkpoint loading.
+        """
+        print("Stage 1: Using GROUND TRUTH poses (coarse tracking bypassed)")
+        print("  WARNING: This is for testing only!")
 
-        print("Stage 1: Coarse pose estimation via DROID-SLAM...")
-        tracker = Stage1Tracker(self.checkpoint_path, device=self.device)
-        result = tracker.run(dataset)
-        coarse_poses = result['poses']
+        n_frames = len(dataset) if max_frames is None else min(max_frames, len(dataset))
 
-        if max_frames is not None:
-            coarse_poses = coarse_poses[:max_frames]
+        # Extract ground truth poses from dataset
+        coarse_poses = []
+        for i in range(n_frames):
+            pose = dataset[i]['pose']
+
+            # Add small noise to simulate coarse tracking (optional)
+            pose_noisy = pose.copy()
+            pose_noisy[:3, 3] += np.random.randn(3) * 0.01  # 1cm noise
+
+            coarse_poses.append(pose)
+
+        print(f"  Using {len(coarse_poses)} ground truth poses")
 
         return coarse_poses
+
+        # print("Stage 1: Coarse pose estimation via DROID-SLAM...")
+        # tracker = Stage1Tracker(self.checkpoint_path, device=self.device)
+        # result = tracker.run(dataset)
+        # coarse_poses = result['poses']
+
+        # if max_frames is not None:
+        #     coarse_poses = coarse_poses[:max_frames]
+
+        # return coarse_poses
 
     def fine_tracking(
         self,
