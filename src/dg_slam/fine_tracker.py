@@ -149,7 +149,7 @@ class FineTracker:
             'visibility_filter': render_pkg['visibility_filter']
         }
 
-    def compute_tracking_loss(self, rendered_rgb: torch.Tensor, rendered_depth: torch.Tensor, gt_rgb: torch.Tensor, gt_depth: torch.Tensor, motion_mask: torch.Tensor) -> tuple:
+    def compute_tracking_loss(self, rendered_rgb, rendered_depth, gt_rgb, gt_depth, motion_mask):
         if not isinstance(motion_mask, torch.Tensor):
             motion_mask = torch.as_tensor(motion_mask, device=self.device, dtype=torch.bool)
         if not isinstance(gt_depth, torch.Tensor):
@@ -159,6 +159,8 @@ class FineTracker:
             motion_mask = motion_mask.unsqueeze(0)
         if gt_depth.ndim == 2:
             gt_depth = gt_depth.unsqueeze(0)
+        if rendered_depth.ndim == 2:
+            rendered_depth = rendered_depth.unsqueeze(0)
 
         mask = motion_mask.float().to(rendered_rgb.device)
         rgb_loss = l1_loss(rendered_rgb * mask, gt_rgb * mask)
