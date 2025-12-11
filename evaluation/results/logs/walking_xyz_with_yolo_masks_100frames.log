@@ -1,0 +1,1180 @@
+/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/torch/functional.py:478: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1659484808560/work/aten/src/ATen/native/TensorShape.cpp:2894.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Start Running DG-SLAM QUICK TEST (100 frames, WITH SEMANTIC MASKS)....
+Performing evaluation on rgbd_dataset_freiburg3_walking_xyz
+checkpoints/droid.pth
+⭐️ 🌙  mapping begin!!
+Loading data from: data/TUM/rgbd_dataset_freiburg3_walking_xyz
+✓ Found mask for frame 0: 1341846313.592026.png
+✓ Found mask for frame 2: 1341846313.654184.png
+✓ Found mask for frame 3: 1341846313.686156.png
+✓ Found mask for frame 4: 1341846313.721918.png
+✓ Found mask for frame 5: 1341846313.753994.png
+✓ Found mask for frame 6: 1341846313.789969.png
+✓ Found mask for frame 7: 1341846313.822075.png
+✓ Found mask for frame 8: 1341846313.853928.png
+✓ Found mask for frame 9: 1341846313.890011.png
+✓ Found mask for frame 10: 1341846313.922055.png
+✓ Found mask for frame 11: 1341846313.957927.png
+✓ Found mask for frame 12: 1341846313.990058.png
+✓ Found mask for frame 13: 1341846314.022042.png
+✓ Found mask for frame 14: 1341846314.057816.png
+✓ Found mask for frame 15: 1341846314.089801.png
+✓ Found mask for frame 16: 1341846314.122037.png
+✓ Found mask for frame 17: 1341846314.157989.png
+✓ Found mask for frame 18: 1341846314.190094.png
+✓ Found mask for frame 19: 1341846314.225969.png
+✓ Found mask for frame 20: 1341846314.257923.png
+✓ Found mask for frame 21: 1341846314.290052.png
+✓ Found mask for frame 22: 1341846314.325981.png
+✓ Found mask for frame 23: 1341846314.357905.png
+✓ Found mask for frame 24: 1341846314.389899.png
+✓ Found mask for frame 25: 1341846314.427905.png
+✓ Found mask for frame 27: 1341846314.493987.png
+✓ Found mask for frame 28: 1341846314.526085.png
+✓ Found mask for frame 29: 1341846314.558292.png
+✓ Found mask for frame 30: 1341846314.594085.png
+✓ Found mask for frame 31: 1341846314.626096.png
+✓ Found mask for frame 32: 1341846314.658455.png
+✓ Found mask for frame 33: 1341846314.694004.png
+✓ Found mask for frame 34: 1341846314.725910.png
+✓ Found mask for frame 35: 1341846314.761942.png
+✓ Found mask for frame 36: 1341846314.794030.png
+✓ Found mask for frame 37: 1341846314.826092.png
+✓ Found mask for frame 38: 1341846314.862145.png
+✓ Found mask for frame 39: 1341846314.894072.png
+✓ Found mask for frame 40: 1341846314.925969.png
+✓ Found mask for frame 41: 1341846314.961937.png
+✓ Found mask for frame 42: 1341846314.994564.png
+✓ Found mask for frame 43: 1341846315.029900.png
+✓ Found mask for frame 44: 1341846315.061965.png
+✓ Found mask for frame 45: 1341846315.094388.png
+✓ Found mask for frame 46: 1341846315.129851.png
+✓ Found mask for frame 47: 1341846315.161941.png
+✓ Found mask for frame 48: 1341846315.197984.png
+✓ Found mask for frame 49: 1341846315.230076.png
+✓ Found mask for frame 50: 1341846315.262069.png
+✓ Found mask for frame 51: 1341846315.298000.png
+✓ Found mask for frame 52: 1341846315.329931.png
+✓ Found mask for frame 53: 1341846315.361981.png
+✓ Found mask for frame 54: 1341846315.397962.png
+✓ Found mask for frame 55: 1341846315.429923.png
+✓ Found mask for frame 56: 1341846315.466047.png
+✓ Found mask for frame 57: 1341846315.497883.png
+✓ Found mask for frame 58: 1341846315.530008.png
+✓ Found mask for frame 59: 1341846315.566108.png
+✓ Found mask for frame 60: 1341846315.597986.png
+✓ Found mask for frame 61: 1341846315.630109.png
+✓ Found mask for frame 62: 1341846315.666042.png
+✓ Found mask for frame 63: 1341846315.698114.png
+✓ Found mask for frame 64: 1341846315.733985.png
+✓ Found mask for frame 65: 1341846315.766041.png
+✓ Found mask for frame 66: 1341846315.798188.png
+✓ Found mask for frame 67: 1341846315.834140.png
+✓ Found mask for frame 68: 1341846315.866751.png
+✓ Found mask for frame 69: 1341846315.898492.png
+✓ Found mask for frame 70: 1341846315.936901.png
+✓ Found mask for frame 72: 1341846316.002119.png
+✓ Found mask for frame 73: 1341846316.034204.png
+✓ Found mask for frame 74: 1341846316.066113.png
+✓ Found mask for frame 75: 1341846316.101867.png
+✓ Found mask for frame 76: 1341846316.134066.png
+✓ Found mask for frame 77: 1341846316.169952.png
+✓ Found mask for frame 78: 1341846316.202049.png
+✓ Found mask for frame 79: 1341846316.233979.png
+✓ Found mask for frame 80: 1341846316.270052.png
+✓ Found mask for frame 81: 1341846316.301915.png
+✓ Found mask for frame 82: 1341846316.334208.png
+✓ Found mask for frame 83: 1341846316.370006.png
+✓ Found mask for frame 84: 1341846316.401994.png
+✓ Found mask for frame 85: 1341846316.438069.png
+✓ Found mask for frame 86: 1341846316.470076.png
+✓ Found mask for frame 87: 1341846316.502034.png
+✓ Found mask for frame 88: 1341846316.537975.png
+✓ Found mask for frame 89: 1341846316.570121.png
+✓ Found mask for frame 90: 1341846316.601885.png
+✓ Found mask for frame 91: 1341846316.638009.png
+✓ Found mask for frame 92: 1341846316.669925.png
+✓ Found mask for frame 93: 1341846316.705941.png
+✓ Found mask for frame 94: 1341846316.738062.png
+✓ Found mask for frame 95: 1341846316.770433.png
+✓ Found mask for frame 96: 1341846316.805932.png
+✓ Found mask for frame 97: 1341846316.838029.png
+✓ Found mask for frame 98: 1341846316.870034.png
+✓ Found mask for frame 99: 1341846316.906344.png
+✓ Found mask for frame 100: 1341846316.937940.png
+✓ Found mask for frame 101: 1341846316.973994.png
+✓ Found mask for frame 102: 1341846317.005913.png
+✓ Found mask for frame 103: 1341846317.037936.png
+✓ Found mask for frame 104: 1341846317.073972.png
+✓ Found mask for frame 105: 1341846317.106113.png
+✓ Found mask for frame 106: 1341846317.137887.png
+✓ Found mask for frame 107: 1341846317.173970.png
+✓ Found mask for frame 108: 1341846317.205887.png
+✓ Found mask for frame 109: 1341846317.248131.png
+✓ Found mask for frame 111: 1341846317.306289.png
+✓ Found mask for frame 112: 1341846317.348137.png
+✓ Found mask for frame 114: 1341846317.410120.png
+✓ Found mask for frame 115: 1341846317.442569.png
+✓ Found mask for frame 116: 1341846317.474010.png
+✓ Found mask for frame 117: 1341846317.509927.png
+✓ Found mask for frame 118: 1341846317.542282.png
+✓ Found mask for frame 119: 1341846317.573943.png
+✓ Found mask for frame 120: 1341846317.610159.png
+✓ Found mask for frame 121: 1341846317.643553.png
+✓ Found mask for frame 122: 1341846317.677993.png
+✓ Found mask for frame 123: 1341846317.709996.png
+✓ Found mask for frame 124: 1341846317.741834.png
+✓ Found mask for frame 125: 1341846317.777923.png
+✓ Found mask for frame 126: 1341846317.810021.png
+✓ Found mask for frame 127: 1341846317.841886.png
+✓ Found mask for frame 128: 1341846317.878017.png
+✓ Found mask for frame 129: 1341846317.909910.png
+✓ Found mask for frame 130: 1341846317.946031.png
+✓ Found mask for frame 131: 1341846317.978041.png
+✓ Found mask for frame 132: 1341846318.009897.png
+✓ Found mask for frame 133: 1341846318.045949.png
+✓ Found mask for frame 134: 1341846318.078074.png
+✓ Found mask for frame 135: 1341846318.109894.png
+✓ Found mask for frame 136: 1341846318.145957.png
+✓ Found mask for frame 137: 1341846318.178001.png
+✓ Found mask for frame 138: 1341846318.214074.png
+✓ Found mask for frame 139: 1341846318.245970.png
+✓ Found mask for frame 140: 1341846318.278018.png
+✓ Found mask for frame 141: 1341846318.313937.png
+✓ Found mask for frame 142: 1341846318.345989.png
+✓ Found mask for frame 143: 1341846318.382046.png
+✓ Found mask for frame 144: 1341846318.414072.png
+✓ Found mask for frame 145: 1341846318.446035.png
+✓ Found mask for frame 146: 1341846318.482196.png
+✓ Found mask for frame 147: 1341846318.514144.png
+✓ Found mask for frame 148: 1341846318.546259.png
+✓ Found mask for frame 149: 1341846318.582042.png
+✓ Found mask for frame 150: 1341846318.614115.png
+✓ Found mask for frame 151: 1341846318.650038.png
+✓ Found mask for frame 152: 1341846318.682350.png
+✓ Found mask for frame 153: 1341846318.714063.png
+✓ Found mask for frame 154: 1341846318.749905.png
+✓ Found mask for frame 155: 1341846318.782036.png
+✓ Found mask for frame 156: 1341846318.814121.png
+✓ Found mask for frame 157: 1341846318.850072.png
+✓ Found mask for frame 158: 1341846318.883516.png
+✓ Found mask for frame 159: 1341846318.918047.png
+✓ Found mask for frame 160: 1341846318.950044.png
+✓ Found mask for frame 161: 1341846318.982028.png
+✓ Found mask for frame 162: 1341846319.018123.png
+✓ Found mask for frame 163: 1341846319.050745.png
+✓ Found mask for frame 165: 1341846319.117976.png
+✓ Found mask for frame 166: 1341846319.150093.png
+✓ Found mask for frame 167: 1341846319.186069.png
+✓ Found mask for frame 168: 1341846319.218149.png
+✓ Found mask for frame 169: 1341846319.250034.png
+✓ Found mask for frame 170: 1341846319.286594.png
+✓ Found mask for frame 171: 1341846319.318034.png
+✓ Found mask for frame 172: 1341846319.350268.png
+✓ Found mask for frame 173: 1341846319.386163.png
+✓ Found mask for frame 174: 1341846319.418386.png
+✓ Found mask for frame 175: 1341846319.453961.png
+✓ Found mask for frame 176: 1341846319.486271.png
+✓ Found mask for frame 177: 1341846319.518456.png
+✓ Found mask for frame 178: 1341846319.554083.png
+✓ Found mask for frame 179: 1341846319.586296.png
+✓ Found mask for frame 180: 1341846319.622031.png
+✓ Found mask for frame 181: 1341846319.653962.png
+✓ Found mask for frame 182: 1341846319.686352.png
+✓ Found mask for frame 183: 1341846319.721992.png
+✓ Found mask for frame 184: 1341846319.754063.png
+✓ Found mask for frame 185: 1341846319.786397.png
+✓ Found mask for frame 186: 1341846319.822008.png
+✓ Found mask for frame 187: 1341846319.853917.png
+✓ Found mask for frame 188: 1341846319.889942.png
+✓ Found mask for frame 189: 1341846319.922039.png
+✓ Found mask for frame 190: 1341846319.953946.png
+✓ Found mask for frame 191: 1341846319.990054.png
+✓ Found mask for frame 192: 1341846320.028122.png
+✓ Found mask for frame 194: 1341846320.090047.png
+✓ Found mask for frame 195: 1341846320.122011.png
+✓ Found mask for frame 196: 1341846320.157952.png
+✓ Found mask for frame 197: 1341846320.190003.png
+✓ Found mask for frame 198: 1341846320.221941.png
+✓ Found mask for frame 199: 1341846320.258015.png
+✓ Found mask for frame 200: 1341846320.289887.png
+✓ Found mask for frame 201: 1341846320.321954.png
+✓ Found mask for frame 202: 1341846320.357890.png
+✓ Found mask for frame 203: 1341846320.390064.png
+✓ Found mask for frame 204: 1341846320.426544.png
+✓ Found mask for frame 205: 1341846320.458122.png
+✓ Found mask for frame 206: 1341846320.490186.png
+✓ Found mask for frame 207: 1341846320.525911.png
+✓ Found mask for frame 208: 1341846320.558091.png
+✓ Found mask for frame 209: 1341846320.594093.png
+✓ Found mask for frame 210: 1341846320.631955.png
+✓ Found mask for frame 211: 1341846320.664916.png
+✓ Found mask for frame 212: 1341846320.699927.png
+✓ Found mask for frame 213: 1341846320.731822.png
+✓ Found mask for frame 214: 1341846320.763877.png
+✓ Found mask for frame 215: 1341846320.799999.png
+✓ Found mask for frame 216: 1341846320.831871.png
+✓ Found mask for frame 217: 1341846320.863887.png
+✓ Found mask for frame 218: 1341846320.900014.png
+✓ Found mask for frame 219: 1341846320.931889.png
+✓ Found mask for frame 220: 1341846320.967866.png
+✓ Found mask for frame 221: 1341846321.000017.png
+✓ Found mask for frame 222: 1341846321.031860.png
+✓ Found mask for frame 223: 1341846321.068047.png
+✓ Found mask for frame 224: 1341846321.099840.png
+✓ Found mask for frame 225: 1341846321.131821.png
+✓ Found mask for frame 226: 1341846321.167887.png
+✓ Found mask for frame 227: 1341846321.200042.png
+✓ Found mask for frame 228: 1341846321.231950.png
+✓ Found mask for frame 229: 1341846321.267939.png
+✓ Found mask for frame 230: 1341846321.299948.png
+✓ Found mask for frame 231: 1341846321.331858.png
+✓ Found mask for frame 232: 1341846321.367913.png
+✓ Found mask for frame 233: 1341846321.399897.png
+✓ Found mask for frame 234: 1341846321.435994.png
+✓ Found mask for frame 235: 1341846321.467946.png
+✓ Found mask for frame 236: 1341846321.499882.png
+✓ Found mask for frame 237: 1341846321.536109.png
+✓ Found mask for frame 238: 1341846321.568960.png
+✓ Found mask for frame 239: 1341846321.603938.png
+✓ Found mask for frame 240: 1341846321.637163.png
+✓ Found mask for frame 242: 1341846321.704411.png
+✓ Found mask for frame 243: 1341846321.736861.png
+✓ Found mask for frame 244: 1341846321.771881.png
+✓ Found mask for frame 245: 1341846321.804114.png
+✓ Found mask for frame 246: 1341846321.836152.png
+✓ Found mask for frame 247: 1341846321.871882.png
+✓ Found mask for frame 248: 1341846321.904074.png
+✓ Found mask for frame 249: 1341846321.939847.png
+✓ Found mask for frame 250: 1341846322.004094.png
+✓ Found mask for frame 252: 1341846322.066178.png
+✓ Found mask for frame 253: 1341846322.107979.png
+✓ Found mask for frame 255: 1341846322.166164.png
+✓ Found mask for frame 256: 1341846322.202932.png
+✓ Found mask for frame 258: 1341846322.265941.png
+✓ Found mask for frame 259: 1341846322.301996.png
+✓ Found mask for frame 260: 1341846322.333949.png
+✓ Found mask for frame 261: 1341846322.369871.png
+✓ Found mask for frame 262: 1341846322.402292.png
+✓ Found mask for frame 263: 1341846322.433955.png
+✓ Found mask for frame 264: 1341846322.470030.png
+✓ Found mask for frame 265: 1341846322.502433.png
+✓ Found mask for frame 266: 1341846322.534002.png
+✓ Found mask for frame 267: 1341846322.570196.png
+✓ Found mask for frame 268: 1341846322.601920.png
+✓ Found mask for frame 269: 1341846322.638119.png
+✓ Found mask for frame 270: 1341846322.669947.png
+✓ Found mask for frame 271: 1341846322.702026.png
+✓ Found mask for frame 272: 1341846322.738006.png
+✓ Found mask for frame 273: 1341846322.770087.png
+✓ Found mask for frame 274: 1341846322.806047.png
+✓ Found mask for frame 275: 1341846322.838063.png
+✓ Found mask for frame 276: 1341846322.870081.png
+✓ Found mask for frame 277: 1341846322.906018.png
+✓ Found mask for frame 278: 1341846322.938349.png
+✓ Found mask for frame 279: 1341846322.970069.png
+✓ Found mask for frame 280: 1341846323.011820.png
+✓ Found mask for frame 282: 1341846323.073951.png
+✓ Found mask for frame 283: 1341846323.105962.png
+✓ Found mask for frame 284: 1341846323.138158.png
+✓ Found mask for frame 285: 1341846323.174092.png
+✓ Found mask for frame 286: 1341846323.206059.png
+✓ Found mask for frame 287: 1341846323.238053.png
+✓ Found mask for frame 288: 1341846323.273997.png
+✓ Found mask for frame 289: 1341846323.305946.png
+✓ Found mask for frame 290: 1341846323.342027.png
+✓ Found mask for frame 291: 1341846323.374048.png
+✓ Found mask for frame 292: 1341846323.405987.png
+✓ Found mask for frame 293: 1341846323.441956.png
+✓ Found mask for frame 294: 1341846323.473878.png
+✓ Found mask for frame 295: 1341846323.506129.png
+✓ Found mask for frame 296: 1341846323.541972.png
+✓ Found mask for frame 297: 1341846323.573913.png
+✓ Found mask for frame 298: 1341846323.609927.png
+✓ Found mask for frame 299: 1341846323.642014.png
+✓ Found mask for frame 300: 1341846323.674081.png
+✓ Found mask for frame 301: 1341846323.710069.png
+✓ Found mask for frame 302: 1341846323.742111.png
+✓ Found mask for frame 303: 1341846323.774928.png
+✓ Found mask for frame 304: 1341846323.810012.png
+✓ Found mask for frame 305: 1341846323.842207.png
+✓ Found mask for frame 306: 1341846323.878019.png
+✓ Found mask for frame 307: 1341846323.909826.png
+✓ Found mask for frame 308: 1341846323.942459.png
+✓ Found mask for frame 309: 1341846323.978055.png
+✓ Found mask for frame 310: 1341846324.015934.png
+✓ Found mask for frame 311: 1341846324.047722.png
+✓ Found mask for frame 312: 1341846324.083904.png
+✓ Found mask for frame 313: 1341846324.115968.png
+✓ Found mask for frame 314: 1341846324.151967.png
+✓ Found mask for frame 315: 1341846324.183941.png
+✓ Found mask for frame 316: 1341846324.219984.png
+✓ Found mask for frame 317: 1341846324.251968.png
+✓ Found mask for frame 318: 1341846324.284052.png
+✓ Found mask for frame 319: 1341846324.319880.png
+✓ Found mask for frame 320: 1341846324.351917.png
+✓ Found mask for frame 321: 1341846324.388001.png
+✓ Found mask for frame 322: 1341846324.419908.png
+✓ Found mask for frame 323: 1341846324.452027.png
+✓ Found mask for frame 324: 1341846324.487928.png
+✓ Found mask for frame 325: 1341846324.519985.png
+✓ Found mask for frame 326: 1341846324.556001.png
+✓ Found mask for frame 327: 1341846324.587888.png
+✓ Found mask for frame 328: 1341846324.620086.png
+✓ Found mask for frame 329: 1341846324.655955.png
+✓ Found mask for frame 330: 1341846324.688082.png
+✓ Found mask for frame 331: 1341846324.755922.png
+✓ Found mask for frame 333: 1341846324.814016.png
+✓ Found mask for frame 334: 1341846324.849979.png
+✓ Found mask for frame 335: 1341846324.881924.png
+✓ Found mask for frame 336: 1341846324.913902.png
+✓ Found mask for frame 337: 1341846324.949999.png
+✓ Found mask for frame 338: 1341846324.981922.png
+✓ Found mask for frame 339: 1341846325.018013.png
+✓ Found mask for frame 340: 1341846325.050079.png
+✓ Found mask for frame 341: 1341846325.081901.png
+✓ Found mask for frame 342: 1341846325.118531.png
+✓ Found mask for frame 343: 1341846325.149933.png
+✓ Found mask for frame 344: 1341846325.181925.png
+✓ Found mask for frame 345: 1341846325.218055.png
+✓ Found mask for frame 346: 1341846325.249811.png
+✓ Found mask for frame 347: 1341846325.285925.png
+✓ Found mask for frame 348: 1341846325.317988.png
+✓ Found mask for frame 349: 1341846325.349844.png
+✓ Found mask for frame 350: 1341846325.387302.png
+✓ Found mask for frame 352: 1341846325.450747.png
+✓ Found mask for frame 353: 1341846325.485954.png
+✓ Found mask for frame 354: 1341846325.517875.png
+✓ Found mask for frame 355: 1341846325.553859.png
+✓ Found mask for frame 356: 1341846325.585855.png
+✓ Found mask for frame 357: 1341846325.617990.png
+✓ Found mask for frame 358: 1341846325.653982.png
+✓ Found mask for frame 359: 1341846325.685819.png
+✓ Found mask for frame 360: 1341846325.717857.png
+✓ Found mask for frame 361: 1341846325.754083.png
+✓ Found mask for frame 362: 1341846325.786087.png
+✓ Found mask for frame 363: 1341846325.821856.png
+✓ Found mask for frame 364: 1341846325.853827.png
+✓ Found mask for frame 365: 1341846325.885958.png
+✓ Found mask for frame 366: 1341846325.921984.png
+✓ Found mask for frame 367: 1341846325.953899.png
+✓ Found mask for frame 368: 1341846325.985823.png
+✓ Found mask for frame 369: 1341846326.021991.png
+✓ Found mask for frame 370: 1341846326.054055.png
+✓ Found mask for frame 371: 1341846326.089984.png
+✓ Found mask for frame 372: 1341846326.121822.png
+✓ Found mask for frame 373: 1341846326.154079.png
+✓ Found mask for frame 374: 1341846326.190178.png
+✓ Found mask for frame 375: 1341846326.222162.png
+✓ Found mask for frame 376: 1341846326.259181.png
+✓ Found mask for frame 377: 1341846326.291222.png
+✓ Found mask for frame 378: 1341846326.322766.png
+✓ Found mask for frame 379: 1341846326.359773.png
+✓ Found mask for frame 380: 1341846326.392109.png
+✓ Found mask for frame 381: 1341846326.423985.png
+✓ Found mask for frame 382: 1341846326.459869.png
+✓ Found mask for frame 383: 1341846326.491143.png
+✓ Found mask for frame 384: 1341846326.526163.png
+✓ Found mask for frame 385: 1341846326.560211.png
+✓ Found mask for frame 386: 1341846326.591828.png
+✓ Found mask for frame 387: 1341846326.627027.png
+✓ Found mask for frame 388: 1341846326.658442.png
+✓ Found mask for frame 389: 1341846326.694856.png
+✓ Found mask for frame 390: 1341846326.726206.png
+✓ Found mask for frame 391: 1341846326.762753.png
+✓ Found mask for frame 392: 1341846326.794046.png
+✓ Found mask for frame 393: 1341846326.826821.png
+✓ Found mask for frame 394: 1341846326.858887.png
+✓ Found mask for frame 395: 1341846326.895360.png
+✓ Found mask for frame 396: 1341846326.926897.png
+✓ Found mask for frame 397: 1341846326.958888.png
+✓ Found mask for frame 398: 1341846326.994594.png
+✓ Found mask for frame 399: 1341846327.026301.png
+✓ Found mask for frame 400: 1341846327.063945.png
+✓ Found mask for frame 402: 1341846327.128901.png
+✓ Found mask for frame 403: 1341846327.161940.png
+✓ Found mask for frame 404: 1341846327.193867.png
+✓ Found mask for frame 405: 1341846327.229885.png
+✓ Found mask for frame 406: 1341846327.262014.png
+✓ Found mask for frame 407: 1341846327.294023.png
+✓ Found mask for frame 408: 1341846327.330015.png
+✓ Found mask for frame 409: 1341846327.361939.png
+✓ Found mask for frame 410: 1341846327.393887.png
+✓ Found mask for frame 411: 1341846327.429966.png
+✓ Found mask for frame 412: 1341846327.461965.png
+✓ Found mask for frame 413: 1341846327.497931.png
+✓ Found mask for frame 414: 1341846327.530068.png
+✓ Found mask for frame 415: 1341846327.561895.png
+✓ Found mask for frame 416: 1341846327.598010.png
+✓ Found mask for frame 417: 1341846327.629945.png
+✓ Found mask for frame 418: 1341846327.662003.png
+✓ Found mask for frame 419: 1341846327.697919.png
+✓ Found mask for frame 420: 1341846327.730075.png
+✓ Found mask for frame 421: 1341846327.766017.png
+✓ Found mask for frame 422: 1341846327.797917.png
+✓ Found mask for frame 423: 1341846327.830054.png
+✓ Found mask for frame 424: 1341846327.865944.png
+✓ Found mask for frame 425: 1341846327.898010.png
+✓ Found mask for frame 426: 1341846327.929991.png
+✓ Found mask for frame 427: 1341846327.966065.png
+✓ Found mask for frame 428: 1341846327.998073.png
+✓ Found mask for frame 429: 1341846328.034045.png
+✓ Found mask for frame 430: 1341846328.065993.png
+✓ Found mask for frame 431: 1341846328.098045.png
+✓ Found mask for frame 432: 1341846328.133967.png
+✓ Found mask for frame 433: 1341846328.166023.png
+✓ Found mask for frame 434: 1341846328.198018.png
+✓ Found mask for frame 435: 1341846328.234044.png
+✓ Found mask for frame 436: 1341846328.265899.png
+✓ Found mask for frame 437: 1341846328.302051.png
+✓ Found mask for frame 438: 1341846328.333917.png
+✓ Found mask for frame 439: 1341846328.366008.png
+✓ Found mask for frame 440: 1341846328.402010.png
+✓ Found mask for frame 441: 1341846328.433920.png
+✓ Found mask for frame 442: 1341846328.470003.png
+✓ Found mask for frame 443: 1341846328.502194.png
+✓ Found mask for frame 444: 1341846328.534033.png
+✓ Found mask for frame 445: 1341846328.570125.png
+✓ Found mask for frame 446: 1341846328.602804.png
+✓ Found mask for frame 447: 1341846328.636433.png
+✓ Found mask for frame 448: 1341846328.672663.png
+✓ Found mask for frame 450: 1341846328.738215.png
+✓ Found mask for frame 451: 1341846328.770129.png
+✓ Found mask for frame 452: 1341846328.802331.png
+✓ Found mask for frame 453: 1341846328.838051.png
+✓ Found mask for frame 454: 1341846328.869939.png
+✓ Found mask for frame 455: 1341846328.904486.png
+✓ Found mask for frame 456: 1341846328.939814.png
+✓ Found mask for frame 458: 1341846329.006232.png
+✓ Found mask for frame 459: 1341846329.038243.png
+✓ Found mask for frame 460: 1341846329.072238.png
+✓ Found mask for frame 461: 1341846329.106125.png
+✓ Found mask for frame 462: 1341846329.138340.png
+✓ Found mask for frame 463: 1341846329.169991.png
+✓ Found mask for frame 464: 1341846329.208656.png
+✓ Found mask for frame 466: 1341846329.273827.png
+✓ Found mask for frame 467: 1341846329.306052.png
+✓ Found mask for frame 468: 1341846329.338104.png
+✓ Found mask for frame 469: 1341846329.373907.png
+✓ Found mask for frame 470: 1341846329.405985.png
+✓ Found mask for frame 471: 1341846329.442057.png
+✓ Found mask for frame 472: 1341846329.473950.png
+✓ Found mask for frame 473: 1341846329.506147.png
+✓ Found mask for frame 474: 1341846329.542121.png
+✓ Found mask for frame 475: 1341846329.574086.png
+✓ Found mask for frame 476: 1341846329.606387.png
+✓ Found mask for frame 477: 1341846329.641955.png
+✓ Found mask for frame 478: 1341846329.681570.png
+✓ Found mask for frame 479: 1341846329.748113.png
+✓ Found mask for frame 481: 1341846329.810175.png
+✓ Found mask for frame 482: 1341846329.842255.png
+✓ Found mask for frame 483: 1341846329.874044.png
+✓ Found mask for frame 484: 1341846329.910073.png
+✓ Found mask for frame 485: 1341846329.942009.png
+✓ Found mask for frame 486: 1341846329.978087.png
+✓ Found mask for frame 487: 1341846330.016305.png
+✓ Found mask for frame 488: 1341846330.048192.png
+✓ Found mask for frame 489: 1341846330.080418.png
+✓ Found mask for frame 490: 1341846330.115886.png
+✓ Found mask for frame 491: 1341846330.147839.png
+✓ Found mask for frame 492: 1341846330.181257.png
+✓ Found mask for frame 493: 1341846330.215852.png
+✓ Found mask for frame 494: 1341846330.247833.png
+✓ Found mask for frame 495: 1341846330.283913.png
+✓ Found mask for frame 496: 1341846330.316011.png
+✓ Found mask for frame 497: 1341846330.347868.png
+✓ Found mask for frame 498: 1341846330.383835.png
+✓ Found mask for frame 499: 1341846330.415934.png
+✓ Found mask for frame 500: 1341846330.452561.png
+✓ Found mask for frame 501: 1341846330.483903.png
+✓ Found mask for frame 502: 1341846330.515970.png
+✓ Found mask for frame 503: 1341846330.552099.png
+✓ Found mask for frame 504: 1341846330.583876.png
+✓ Found mask for frame 505: 1341846330.619992.png
+✓ Found mask for frame 506: 1341846330.652136.png
+✓ Found mask for frame 507: 1341846330.683796.png
+✓ Found mask for frame 508: 1341846330.719991.png
+✓ Found mask for frame 509: 1341846330.752103.png
+✓ Found mask for frame 510: 1341846330.787952.png
+✓ Found mask for frame 511: 1341846330.819823.png
+✓ Found mask for frame 512: 1341846330.852208.png
+✓ Found mask for frame 513: 1341846330.888445.png
+✓ Found mask for frame 515: 1341846330.949903.png
+✓ Found mask for frame 516: 1341846330.981986.png
+✓ Found mask for frame 517: 1341846331.014111.png
+✓ Found mask for frame 518: 1341846331.082139.png
+✓ Found mask for frame 519: 1341846331.114334.png
+✓ Found mask for frame 520: 1341846331.149989.png
+✓ Found mask for frame 521: 1341846331.181954.png
+✓ Found mask for frame 522: 1341846331.218151.png
+✓ Found mask for frame 523: 1341846331.249914.png
+✓ Found mask for frame 524: 1341846331.282227.png
+✓ Found mask for frame 525: 1341846331.318141.png
+✓ Found mask for frame 526: 1341846331.349926.png
+✓ Found mask for frame 527: 1341846331.382003.png
+✓ Found mask for frame 528: 1341846331.418008.png
+✓ Found mask for frame 529: 1341846331.450327.png
+✓ Found mask for frame 530: 1341846331.486219.png
+✓ Found mask for frame 531: 1341846331.518344.png
+✓ Found mask for frame 532: 1341846331.550202.png
+✓ Found mask for frame 533: 1341846331.586139.png
+✓ Found mask for frame 534: 1341846331.617931.png
+✓ Found mask for frame 535: 1341846331.654027.png
+✓ Found mask for frame 536: 1341846331.686123.png
+✓ Found mask for frame 537: 1341846331.717954.png
+✓ Found mask for frame 538: 1341846331.754076.png
+✓ Found mask for frame 539: 1341846331.785920.png
+✓ Found mask for frame 540: 1341846331.818053.png
+✓ Found mask for frame 541: 1341846331.853849.png
+✓ Found mask for frame 542: 1341846331.885987.png
+✓ Found mask for frame 543: 1341846331.922014.png
+✓ Found mask for frame 544: 1341846331.954037.png
+✓ Found mask for frame 545: 1341846331.986135.png
+✓ Found mask for frame 546: 1341846332.022364.png
+✓ Found mask for frame 547: 1341846332.054175.png
+✓ Found mask for frame 548: 1341846332.086502.png
+✓ Found mask for frame 549: 1341846332.122051.png
+✓ Found mask for frame 550: 1341846332.153983.png
+✓ Found mask for frame 551: 1341846332.190165.png
+✓ Found mask for frame 552: 1341846332.222699.png
+✓ Found mask for frame 553: 1341846332.254145.png
+✓ Found mask for frame 554: 1341846332.289948.png
+✓ Found mask for frame 555: 1341846332.322172.png
+✓ Found mask for frame 556: 1341846332.354003.png
+✓ Found mask for frame 557: 1341846332.390180.png
+✓ Found mask for frame 558: 1341846332.422055.png
+✓ Found mask for frame 559: 1341846332.458114.png
+✓ Found mask for frame 560: 1341846332.489993.png
+✓ Found mask for frame 561: 1341846332.522130.png
+✓ Found mask for frame 562: 1341846332.558114.png
+✓ Found mask for frame 563: 1341846332.589874.png
+✓ Found mask for frame 564: 1341846332.621889.png
+✓ Found mask for frame 565: 1341846332.658202.png
+✓ Found mask for frame 566: 1341846332.690001.png
+✓ Found mask for frame 567: 1341846332.726000.png
+✓ Found mask for frame 568: 1341846332.758386.png
+✓ Found mask for frame 569: 1341846332.789937.png
+✓ Found mask for frame 570: 1341846332.825925.png
+✓ Found mask for frame 571: 1341846332.857898.png
+✓ Found mask for frame 572: 1341846332.894069.png
+✓ Found mask for frame 573: 1341846332.926029.png
+✓ Found mask for frame 574: 1341846332.958015.png
+✓ Found mask for frame 575: 1341846332.994073.png
+✓ Found mask for frame 576: 1341846333.026545.png
+✓ Found mask for frame 577: 1341846333.057998.png
+✓ Found mask for frame 578: 1341846333.094024.png
+✓ Found mask for frame 579: 1341846333.126095.png
+✓ Found mask for frame 580: 1341846333.161973.png
+✓ Found mask for frame 581: 1341846333.195660.png
+✓ Found mask for frame 583: 1341846333.262056.png
+✓ Found mask for frame 584: 1341846333.294147.png
+✓ Found mask for frame 585: 1341846333.326100.png
+✓ Found mask for frame 586: 1341846333.362100.png
+✓ Found mask for frame 587: 1341846333.394119.png
+✓ Found mask for frame 588: 1341846333.429974.png
+✓ Found mask for frame 589: 1341846333.462115.png
+✓ Found mask for frame 590: 1341846333.494040.png
+✓ Found mask for frame 591: 1341846333.529953.png
+✓ Found mask for frame 592: 1341846333.562063.png
+✓ Found mask for frame 593: 1341846333.594090.png
+✓ Found mask for frame 594: 1341846333.629994.png
+✓ Found mask for frame 595: 1341846333.662127.png
+✓ Found mask for frame 596: 1341846333.697964.png
+✓ Found mask for frame 597: 1341846333.730092.png
+✓ Found mask for frame 598: 1341846333.762089.png
+✓ Found mask for frame 599: 1341846333.798006.png
+✓ Found mask for frame 600: 1341846333.830055.png
+✓ Found mask for frame 601: 1341846333.866045.png
+✓ Found mask for frame 602: 1341846333.897987.png
+✓ Found mask for frame 603: 1341846333.930099.png
+✓ Found mask for frame 604: 1341846333.965889.png
+✓ Found mask for frame 605: 1341846333.997985.png
+✓ Found mask for frame 606: 1341846334.030076.png
+✓ Found mask for frame 607: 1341846334.066000.png
+✓ Found mask for frame 608: 1341846334.097932.png
+✓ Found mask for frame 609: 1341846334.133884.png
+✓ Found mask for frame 610: 1341846334.166115.png
+✓ Found mask for frame 611: 1341846334.198072.png
+✓ Found mask for frame 612: 1341846334.234097.png
+✓ Found mask for frame 613: 1341846334.266045.png
+✓ Found mask for frame 614: 1341846334.297946.png
+✓ Found mask for frame 615: 1341846334.334036.png
+✓ Found mask for frame 616: 1341846334.365871.png
+✓ Found mask for frame 617: 1341846334.401845.png
+✓ Found mask for frame 618: 1341846334.433864.png
+✓ Found mask for frame 619: 1341846334.466105.png
+✓ Found mask for frame 620: 1341846334.502142.png
+✓ Found mask for frame 621: 1341846334.540153.png
+✓ Found mask for frame 623: 1341846334.602351.png
+✓ Found mask for frame 624: 1341846334.634069.png
+✓ Found mask for frame 625: 1341846334.670161.png
+✓ Found mask for frame 626: 1341846334.702085.png
+✓ Found mask for frame 627: 1341846334.734751.png
+✓ Found mask for frame 628: 1341846334.770889.png
+✓ Found mask for frame 629: 1341846334.802194.png
+✓ Found mask for frame 630: 1341846334.833908.png
+✓ Found mask for frame 631: 1341846334.869874.png
+✓ Found mask for frame 632: 1341846334.902006.png
+✓ Found mask for frame 633: 1341846334.938010.png
+✓ Found mask for frame 634: 1341846334.970032.png
+✓ Found mask for frame 635: 1341846335.002203.png
+✓ Found mask for frame 636: 1341846335.037880.png
+✓ Found mask for frame 637: 1341846335.069990.png
+✓ Found mask for frame 638: 1341846335.106038.png
+✓ Found mask for frame 639: 1341846335.138045.png
+✓ Found mask for frame 640: 1341846335.169900.png
+✓ Found mask for frame 641: 1341846335.206091.png
+✓ Found mask for frame 642: 1341846335.239365.png
+✓ Found mask for frame 644: 1341846335.305972.png
+✓ Found mask for frame 645: 1341846335.338012.png
+✓ Found mask for frame 646: 1341846335.374005.png
+✓ Found mask for frame 647: 1341846335.406025.png
+✓ Found mask for frame 648: 1341846335.438079.png
+✓ Found mask for frame 649: 1341846335.473998.png
+✓ Found mask for frame 650: 1341846335.507038.png
+✓ Found mask for frame 652: 1341846335.574119.png
+✓ Found mask for frame 653: 1341846335.605970.png
+✓ Found mask for frame 654: 1341846335.641978.png
+✓ Found mask for frame 655: 1341846335.673993.png
+✓ Found mask for frame 656: 1341846335.706178.png
+✓ Found mask for frame 657: 1341846335.741982.png
+✓ Found mask for frame 658: 1341846335.773960.png
+✓ Found mask for frame 659: 1341846335.806271.png
+✓ Found mask for frame 660: 1341846335.842031.png
+✓ Found mask for frame 661: 1341846335.873966.png
+✓ Found mask for frame 662: 1341846335.910005.png
+✓ Found mask for frame 663: 1341846335.941936.png
+✓ Found mask for frame 664: 1341846335.974198.png
+✓ Found mask for frame 665: 1341846336.010032.png
+✓ Found mask for frame 666: 1341846336.042129.png
+✓ Found mask for frame 667: 1341846336.078076.png
+✓ Found mask for frame 668: 1341846336.110739.png
+✓ Found mask for frame 669: 1341846336.142002.png
+✓ Found mask for frame 670: 1341846336.183953.png
+✓ Found mask for frame 672: 1341846336.241891.png
+✓ Found mask for frame 673: 1341846336.277946.png
+✓ Found mask for frame 674: 1341846336.309977.png
+✓ Found mask for frame 675: 1341846336.346143.png
+✓ Found mask for frame 676: 1341846336.377975.png
+✓ Found mask for frame 677: 1341846336.410032.png
+✓ Found mask for frame 678: 1341846336.446041.png
+✓ Found mask for frame 679: 1341846336.477990.png
+✓ Found mask for frame 680: 1341846336.510056.png
+✓ Found mask for frame 681: 1341846336.546024.png
+✓ Found mask for frame 682: 1341846336.578003.png
+✓ Found mask for frame 683: 1341846336.614020.png
+✓ Found mask for frame 684: 1341846336.645982.png
+✓ Found mask for frame 685: 1341846336.678036.png
+✓ Found mask for frame 686: 1341846336.714024.png
+✓ Found mask for frame 687: 1341846336.746016.png
+✓ Found mask for frame 688: 1341846336.778014.png
+✓ Found mask for frame 689: 1341846336.820006.png
+✓ Found mask for frame 691: 1341846336.882056.png
+✓ Found mask for frame 692: 1341846336.914273.png
+✓ Found mask for frame 693: 1341846336.945998.png
+✓ Found mask for frame 694: 1341846336.981980.png
+✓ Found mask for frame 695: 1341846337.014238.png
+✓ Found mask for frame 696: 1341846337.046017.png
+✓ Found mask for frame 697: 1341846337.082104.png
+✓ Found mask for frame 698: 1341846337.114317.png
+✓ Found mask for frame 699: 1341846337.150037.png
+✓ Found mask for frame 700: 1341846337.181873.png
+✓ Found mask for frame 701: 1341846337.214073.png
+✓ Found mask for frame 702: 1341846337.250087.png
+✓ Found mask for frame 703: 1341846337.282028.png
+✓ Found mask for frame 704: 1341846337.317920.png
+✓ Found mask for frame 705: 1341846337.350018.png
+✓ Found mask for frame 706: 1341846337.382159.png
+✓ Found mask for frame 707: 1341846337.417941.png
+✓ Found mask for frame 708: 1341846337.450137.png
+✓ Found mask for frame 709: 1341846337.482096.png
+✓ Found mask for frame 710: 1341846337.518008.png
+✓ Found mask for frame 711: 1341846337.549978.png
+✓ Found mask for frame 712: 1341846337.585971.png
+✓ Found mask for frame 713: 1341846337.617903.png
+✓ Found mask for frame 714: 1341846337.650141.png
+✓ Found mask for frame 715: 1341846337.686352.png
+✓ Found mask for frame 716: 1341846337.718002.png
+✓ Found mask for frame 717: 1341846337.749920.png
+✓ Found mask for frame 718: 1341846337.786157.png
+✓ Found mask for frame 719: 1341846337.817945.png
+✓ Found mask for frame 720: 1341846337.854071.png
+✓ Found mask for frame 721: 1341846337.885951.png
+✓ Found mask for frame 722: 1341846337.918223.png
+✓ Found mask for frame 723: 1341846337.954120.png
+✓ Found mask for frame 724: 1341846337.985994.png
+✓ Found mask for frame 725: 1341846338.018107.png
+✓ Found mask for frame 726: 1341846338.054055.png
+✓ Found mask for frame 727: 1341846338.085986.png
+✓ Found mask for frame 728: 1341846338.121875.png
+✓ Found mask for frame 729: 1341846338.154089.png
+✓ Found mask for frame 730: 1341846338.186029.png
+✓ Found mask for frame 731: 1341846338.222071.png
+✓ Found mask for frame 732: 1341846338.254107.png
+✓ Found mask for frame 733: 1341846338.290130.png
+✓ Found mask for frame 734: 1341846338.321952.png
+✓ Found mask for frame 735: 1341846338.354022.png
+✓ Found mask for frame 736: 1341846338.389969.png
+✓ Found mask for frame 737: 1341846338.422377.png
+✓ Found mask for frame 738: 1341846338.454010.png
+✓ Found mask for frame 739: 1341846338.489894.png
+✓ Found mask for frame 740: 1341846338.522066.png
+✓ Found mask for frame 741: 1341846338.558058.png
+✓ Found mask for frame 742: 1341846338.589842.png
+✓ Found mask for frame 743: 1341846338.622019.png
+✓ Found mask for frame 744: 1341846338.657984.png
+✓ Found mask for frame 745: 1341846338.690198.png
+✓ Found mask for frame 746: 1341846338.722454.png
+✓ Found mask for frame 747: 1341846338.757945.png
+✓ Found mask for frame 748: 1341846338.790039.png
+✓ Found mask for frame 749: 1341846338.826048.png
+✓ Found mask for frame 750: 1341846338.858027.png
+✓ Found mask for frame 751: 1341846338.889902.png
+✓ Found mask for frame 752: 1341846338.925948.png
+✓ Found mask for frame 753: 1341846338.958108.png
+✓ Found mask for frame 754: 1341846338.990057.png
+✓ Found mask for frame 755: 1341846339.025928.png
+✓ Found mask for frame 756: 1341846339.057939.png
+✓ Found mask for frame 757: 1341846339.093927.png
+✓ Found mask for frame 758: 1341846339.126562.png
+✓ Found mask for frame 759: 1341846339.157969.png
+✓ Found mask for frame 760: 1341846339.194113.png
+✓ Found mask for frame 761: 1341846339.228165.png
+✓ Found mask for frame 763: 1341846339.294132.png
+✓ Found mask for frame 764: 1341846339.326577.png
+✓ Found mask for frame 765: 1341846339.362269.png
+✓ Found mask for frame 766: 1341846339.394725.png
+✓ Found mask for frame 767: 1341846339.426160.png
+✓ Found mask for frame 768: 1341846339.462186.png
+✓ Found mask for frame 769: 1341846339.496743.png
+✓ Found mask for frame 770: 1341846339.530143.png
+✓ Found mask for frame 771: 1341846339.562052.png
+✓ Found mask for frame 772: 1341846339.595122.png
+✓ Found mask for frame 773: 1341846339.632085.png
+✓ Found mask for frame 774: 1341846339.664568.png
+✓ Found mask for frame 775: 1341846339.698896.png
+✓ Found mask for frame 776: 1341846339.731977.png
+✓ Found mask for frame 778: 1341846339.797873.png
+✓ Found mask for frame 779: 1341846339.830245.png
+✓ Found mask for frame 780: 1341846339.862015.png
+✓ Found mask for frame 781: 1341846339.897797.png
+✓ Found mask for frame 782: 1341846339.929916.png
+✓ Found mask for frame 783: 1341846339.961960.png
+✓ Found mask for frame 784: 1341846339.997845.png
+✓ Found mask for frame 785: 1341846340.029925.png
+✓ Found mask for frame 786: 1341846340.066044.png
+✓ Found mask for frame 787: 1341846340.098009.png
+✓ Found mask for frame 788: 1341846340.130102.png
+✓ Found mask for frame 789: 1341846340.166041.png
+✓ Found mask for frame 790: 1341846340.197867.png
+✓ Found mask for frame 791: 1341846340.229904.png
+✓ Found mask for frame 792: 1341846340.265859.png
+✓ Found mask for frame 793: 1341846340.298061.png
+✓ Found mask for frame 794: 1341846340.334063.png
+✓ Found mask for frame 795: 1341846340.366064.png
+✓ Found mask for frame 796: 1341846340.397995.png
+✓ Found mask for frame 797: 1341846340.433895.png
+✓ Found mask for frame 798: 1341846340.465959.png
+✓ Found mask for frame 799: 1341846340.501858.png
+✓ Found mask for frame 800: 1341846340.534329.png
+✓ Found mask for frame 801: 1341846340.566041.png
+✓ Found mask for frame 802: 1341846340.601909.png
+✓ Found mask for frame 803: 1341846340.634005.png
+✓ Found mask for frame 804: 1341846340.666028.png
+✓ Found mask for frame 805: 1341846340.701946.png
+✓ Found mask for frame 806: 1341846340.733954.png
+✓ Found mask for frame 807: 1341846340.770081.png
+✓ Found mask for frame 808: 1341846340.801980.png
+✓ Found mask for frame 809: 1341846340.833999.png
+✓ Found mask for frame 810: 1341846340.870013.png
+✓ Found mask for frame 811: 1341846340.901955.png
+✓ Found mask for frame 812: 1341846340.933918.png
+✓ Found mask for frame 813: 1341846340.970122.png
+✓ Found mask for frame 814: 1341846341.001922.png
+✓ Found mask for frame 815: 1341846341.037923.png
+✓ Found mask for frame 816: 1341846341.070300.png
+✓ Found mask for frame 817: 1341846341.102028.png
+✓ Found mask for frame 818: 1341846341.137982.png
+✓ Found mask for frame 819: 1341846341.170048.png
+✓ Found mask for frame 820: 1341846341.202110.png
+✓ Found mask for frame 821: 1341846341.237996.png
+✓ Found mask for frame 822: 1341846341.269883.png
+✓ Found mask for frame 823: 1341846341.306107.png
+✓ Found mask for frame 824: 1341846341.338109.png
+✓ Found mask for frame 825: 1341846341.370120.png
+✓ Found mask for frame 826: 1341846341.406074.png
+✓ Found mask for frame 827: 1341846341.438113.png
+✓ Found mask for frame 828: 1341846341.470024.png
+✓ Found mask for frame 829: 1341846341.506077.png
+✓ Found mask for frame 830: 1341846341.538156.png
+✓ Found mask for frame 831: 1341846341.574016.png
+✓ Found mask for frame 832: 1341846341.612466.png
+✓ Found mask for frame 833: 1341846341.643972.png
+✓ Found mask for frame 834: 1341846341.679982.png
+✓ Found mask for frame 835: 1341846341.712332.png
+✓ Found mask for frame 836: 1341846341.744185.png
+✓ Found mask for frame 837: 1341846341.780061.png
+✓ Found mask for frame 838: 1341846341.812163.png
+✓ Found mask for frame 840: 1341846341.875779.png
+✓ Found mask for frame 842: 1341846341.942069.png
+✓ Found mask for frame 843: 1341846341.974775.png
+✓ Found mask for frame 844: 1341846342.010161.png
+✓ Found mask for frame 845: 1341846342.042024.png
+✓ Found mask for frame 846: 1341846342.080032.png
+✓ Found mask for frame 847: 1341846342.112265.png
+✓ Found mask for frame 848: 1341846342.147954.png
+✓ Found mask for frame 849: 1341846342.179852.png
+✓ Found mask for frame 850: 1341846342.211848.png
+✓ Found mask for frame 851: 1341846342.247920.png
+✓ Found mask for frame 852: 1341846342.279870.png
+✓ Found mask for frame 853: 1341846342.316068.png
+✓ Found mask for frame 854: 1341846342.347894.png
+✓ Found mask for frame 855: 1341846342.379953.png
+✓ Found mask for frame 856: 1341846342.416195.png
+✓ Found mask for frame 857: 1341846342.447907.png
+QUICK TEST MODE: Processing only 100 frames
+Semantic masks found: 100/100
+
+  0%|          | 0/100 [00:00<?, ?it/s]
+  1%|          | 1/100 [00:02<04:44,  2.88s/it]
+  3%|▎         | 3/100 [00:03<01:18,  1.23it/s]
+  5%|▌         | 5/100 [00:03<00:40,  2.34it/s]
+  7%|▋         | 7/100 [00:03<00:25,  3.61it/s]
+  9%|▉         | 9/100 [00:03<00:18,  4.97it/s]
+ 11%|█         | 11/100 [00:03<00:14,  6.06it/s]
+ 13%|█▎        | 13/100 [00:03<00:11,  7.51it/s]
+ 15%|█▌        | 15/100 [00:04<00:10,  8.28it/s]
+ 17%|█▋        | 17/100 [00:04<00:08,  9.71it/s]
+ 19%|█▉        | 19/100 [00:04<00:08,  9.71it/s]
+ 21%|██        | 21/100 [00:04<00:07, 10.84it/s]
+ 23%|██▎       | 23/100 [00:04<00:06, 11.34it/s]
+ 25%|██▌       | 25/100 [00:04<00:06, 10.77it/s]
+ 27%|██▋       | 27/100 [00:04<00:06, 11.59it/s]
+ 29%|██▉       | 29/100 [00:05<00:06, 11.12it/s]
+ 31%|███       | 31/100 [00:05<00:05, 11.86it/s]
+ 33%|███▎      | 33/100 [00:05<00:05, 11.59it/s]
+ 35%|███▌      | 35/100 [00:05<00:05, 12.67it/s]
+ 37%|███▋      | 37/100 [00:05<00:05, 12.29it/s]
+ 39%|███▉      | 39/100 [00:05<00:04, 12.79it/s]
+ 41%|████      | 41/100 [00:06<00:04, 12.40it/s]
+ 43%|████▎     | 43/100 [00:06<00:04, 12.76it/s]
+ 45%|████▌     | 45/100 [00:06<00:04, 13.50it/s]
+ 47%|████▋     | 47/100 [00:06<00:03, 13.26it/s]
+ 49%|████▉     | 49/100 [00:06<00:03, 13.10it/s]
+ 51%|█████     | 51/100 [00:06<00:03, 13.62it/s]
+ 53%|█████▎    | 53/100 [00:06<00:03, 13.75it/s]
+ 55%|█████▌    | 55/100 [00:07<00:03, 14.29it/s]
+ 57%|█████▋    | 57/100 [00:07<00:03, 13.00it/s]
+ 59%|█████▉    | 59/100 [00:07<00:03, 13.48it/s]
+ 61%|██████    | 61/100 [00:07<00:02, 13.62it/s]
+ 61%|██████    | 61/100 [00:20<00:02, 13.62it/s]/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/torch/nn/functional.py:4215: UserWarning: Default grid_sample and affine_grid behavior has changed to align_corners=False since 1.3.0. Please specify align_corners=True if the old behavior is desired. See the documentation of grid_sample for details.
+  warnings.warn(
+WARNING clustering 12606 points to 400 centroids: please provide at least 15600 training points
+
+ 63%|██████▎   | 63/100 [04:32<24:29, 39.73s/it]
+ 64%|██████▍   | 64/100 [04:32<19:38, 32.74s/it]
+ 66%|██████▌   | 66/100 [04:32<12:20, 21.79s/it]
+ 68%|██████▊   | 68/100 [04:32<07:52, 14.75s/it]
+ 70%|███████   | 70/100 [04:38<05:30, 11.00s/it]
+ 71%|███████   | 71/100 [04:38<04:21,  9.01s/it]
+ 72%|███████▏  | 72/100 [04:38<03:20,  7.16s/it]
+ 73%|███████▎  | 73/100 [04:38<02:29,  5.54s/it]
+ 75%|███████▌  | 75/100 [04:38<01:24,  3.39s/it]
+ 76%|███████▌  | 76/100 [04:41<01:18,  3.28s/it]
+ 78%|███████▊  | 78/100 [04:41<00:44,  2.04s/it]
+ 80%|████████  | 80/100 [04:42<00:26,  1.34s/it]
+ 82%|████████▏ | 82/100 [04:42<00:16,  1.09it/s]
+ 84%|████████▍ | 84/100 [04:47<00:24,  1.54s/it]
+ 86%|████████▌ | 86/100 [04:48<00:15,  1.08s/it]
+ 88%|████████▊ | 88/100 [04:48<00:09,  1.31it/s]
+ 90%|█████████ | 90/100 [04:51<00:10,  1.03s/it]
+ 92%|█████████▏| 92/100 [04:51<00:05,  1.36it/s]
+ 94%|█████████▍| 94/100 [04:51<00:03,  1.87it/s]
+ 96%|█████████▌| 96/100 [04:56<00:04,  1.07s/it]
+ 98%|█████████▊| 98/100 [04:56<00:01,  1.30it/s]
+ 98%|█████████▊| 98/100 [05:10<00:01,  1.30it/s][32m
+Mapping KeyFrame  0
+[0m
+total gaussian points number:  12606
+iter:  0 , geo_loss:  94843.593750
+iter:  100 , geo_loss:  24024.667969
+iter:  200 , geo_loss:  17992.285156
+iter:  300 , geo_loss:  15528.722656 , color_loss:  8242.585938
+iter:  400 , geo_loss:  14052.163086 , color_loss:  7590.489746
+idx:  0 , geo_loss_pixel:  0.135949 , color_loss_pixel:  0.0747
+Current Map has been updated
+total gaussian points number:  12606
+cur window points number:  12257
+cur unseen window points number:  349
+iter:  0 , geo_loss:  22756.121094
+iter:  100 , geo_loss:  17141.835938
+iter:  200 , geo_loss:  14734.128906
+iter:  300 , geo_loss:  13597.224609 , color_loss:  6423.083984
+iter:  400 , geo_loss:  12836.498047 , color_loss:  6212.555176
+idx:  0 , geo_loss_pixel:  0.128559 , color_loss_pixel:  0.0635
+Mapper has updated point features.
+Tracker has updated the parameters from Mapper.
+[35m
+Tracking KeyFrame  0
+[0m
+[35m
+Tracking KeyFrame  1
+[0m
+[32m
+Mapping KeyFrame  1
+[0m
+total gaussian points number:  14998
+iter:  0 , geo_loss:  201805.125000
+idx:  1 , geo_loss_pixel:  0.338869 , color_loss_pixel:  0.1095
+Current Map has been updated
+total gaussian points number:  14998
+cur window points number:  14678
+cur unseen window points number:  320
+iter:  0 , geo_loss:  54162.421875
+idx:  1 , geo_loss_pixel:  0.182200 , color_loss_pixel:  0.1267
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  2
+[0m
+iter: 0, camera tensor error: 0.0040,  tracking loss: 11440.5029
+iter: 19, camera tensor error: 0.0047,  tracking loss: 10490.4092
+iter: 39, camera tensor error: 0.0042,  tracking loss: 10445.8594
+idx:2, re-rendering loss: 11440.50->10439.85.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  2
+[0m
+total gaussian points number:  15804
+iter:  0 , geo_loss:  25997.652344
+idx:  2 , geo_loss_pixel:  0.197637 , color_loss_pixel:  0.0825
+Current Map has been updated
+total gaussian points number:  15804
+cur window points number:  15481
+cur unseen window points number:  323
+iter:  0 , geo_loss:  56471.390625
+idx:  2 , geo_loss_pixel:  0.163098 , color_loss_pixel:  0.1075
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  3
+[0m
+iter: 0, camera tensor error: 0.0035,  tracking loss: 10334.9756
+iter: 19, camera tensor error: 0.0022,  tracking loss: 8948.9189
+iter: 39, camera tensor error: 0.0022,  tracking loss: 8861.0850
+idx:3, re-rendering loss: 10334.98->8849.37.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  3
+[0m
+total gaussian points number:  16718
+iter:  0 , geo_loss:  30690.029297
+idx:  3 , geo_loss_pixel:  0.259360 , color_loss_pixel:  0.1253
+Current Map has been updated
+total gaussian points number:  16718
+cur window points number:  16399
+cur unseen window points number:  319
+iter:  0 , geo_loss:  72120.101562
+idx:  3 , geo_loss_pixel:  0.164177 , color_loss_pixel:  0.1056
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  4
+[0m
+iter: 0, camera tensor error: 0.0020,  tracking loss: 11996.1846
+iter: 19, camera tensor error: 0.0025,  tracking loss: 10173.6562
+iter: 39, camera tensor error: 0.0027,  tracking loss: 10069.8232
+idx:4, re-rendering loss: 11996.18->10066.72.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  4
+[0m
+total gaussian points number:  17739
+iter:  0 , geo_loss:  41851.308594
+idx:  4 , geo_loss_pixel:  0.338738 , color_loss_pixel:  0.1945
+Current Map has been updated
+total gaussian points number:  17739
+cur window points number:  17410
+cur unseen window points number:  329
+iter:  0 , geo_loss:  98721.609375
+idx:  4 , geo_loss_pixel:  0.176246 , color_loss_pixel:  0.1137
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  5
+[0m
+iter: 0, camera tensor error: 0.0029,  tracking loss: 11197.9961
+iter: 19, camera tensor error: 0.0035,  tracking loss: 9790.8242
+iter: 39, camera tensor error: 0.0033,  tracking loss: 9716.0811
+idx:5, re-rendering loss: 11198.00->9706.31.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  5
+[0m
+total gaussian points number:  18792
+iter:  0 , geo_loss:  53734.683594
+idx:  5 , geo_loss_pixel:  0.453023 , color_loss_pixel:  0.2399
+Current Map has been updated
+total gaussian points number:  18792
+cur window points number:  18426
+cur unseen window points number:  366
+iter:  0 , geo_loss:  131678.156250
+idx:  5 , geo_loss_pixel:  0.199254 , color_loss_pixel:  0.1238
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  6
+[0m
+iter: 0, camera tensor error: 0.0051,  tracking loss: 11984.7207
+iter: 19, camera tensor error: 0.0067,  tracking loss: 10629.1553
+iter: 39, camera tensor error: 0.0057,  tracking loss: 10515.0850
+idx:6, re-rendering loss: 11984.72->10507.25.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  6
+[0m
+total gaussian points number:  19657
+iter:  0 , geo_loss:  46786.699219
+idx:  6 , geo_loss_pixel:  0.399704 , color_loss_pixel:  0.1995
+Current Map has been updated
+total gaussian points number:  19657
+cur window points number:  19284
+cur unseen window points number:  373
+iter:  0 , geo_loss:  153919.390625
+idx:  6 , geo_loss_pixel:  0.199667 , color_loss_pixel:  0.1142
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  7
+[0m
+iter: 0, camera tensor error: 0.0028,  tracking loss: 11967.6289
+iter: 19, camera tensor error: 0.0041,  tracking loss: 10557.7061
+iter: 39, camera tensor error: 0.0038,  tracking loss: 10430.3076
+idx:7, re-rendering loss: 11967.63->10403.81.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  7
+[0m
+total gaussian points number:  20770
+iter:  0 , geo_loss:  39665.386719
+idx:  7 , geo_loss_pixel:  0.322685 , color_loss_pixel:  0.1053
+Current Map has been updated
+total gaussian points number:  20770
+cur window points number:  20362
+cur unseen window points number:  408
+iter:  0 , geo_loss:  193072.218750
+idx:  7 , geo_loss_pixel:  0.206583 , color_loss_pixel:  0.0956
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  8
+[0m
+iter: 0, camera tensor error: 0.0048,  tracking loss: 14876.3506
+iter: 19, camera tensor error: 0.0057,  tracking loss: 13621.0547
+iter: 39, camera tensor error: 0.0053,  tracking loss: 13354.1113
+idx:8, re-rendering loss: 14876.35->13242.32.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  8
+[0m
+total gaussian points number:  21874
+iter:  0 , geo_loss:  36382.539062
+idx:  8 , geo_loss_pixel:  0.314592 , color_loss_pixel:  0.0958
+Current Map has been updated
+total gaussian points number:  21874
+cur window points number:  21435
+cur unseen window points number:  439
+iter:  0 , geo_loss:  192918.781250
+idx:  8 , geo_loss_pixel:  0.225492 , color_loss_pixel:  0.0964
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  9
+[0m
+iter: 0, camera tensor error: 0.0045,  tracking loss: 17518.3711
+iter: 19, camera tensor error: 0.0052,  tracking loss: 16399.4355
+iter: 39, camera tensor error: 0.0079,  tracking loss: 16057.2451
+idx:9, re-rendering loss: 17518.37->15930.60.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  9
+[0m
+total gaussian points number:  22695
+iter:  0 , geo_loss:  60790.843750
+idx:  9 , geo_loss_pixel:  0.507327 , color_loss_pixel:  0.1237
+Current Map has been updated
+total gaussian points number:  22695
+cur window points number:  22331
+cur unseen window points number:  364
+iter:  0 , geo_loss:  273126.000000
+idx:  9 , geo_loss_pixel:  0.232487 , color_loss_pixel:  0.1005
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  10
+[0m
+iter: 0, camera tensor error: 0.0043,  tracking loss: 17527.3320
+iter: 19, camera tensor error: 0.0053,  tracking loss: 16478.7910
+iter: 39, camera tensor error: 0.0048,  tracking loss: 16253.5801
+idx:10, re-rendering loss: 17527.33->16143.50.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  10
+[0m
+total gaussian points number:  23514
+iter:  0 , geo_loss:  51924.187500
+idx:  10 , geo_loss_pixel:  0.402898 , color_loss_pixel:  0.1288
+Current Map has been updated
+total gaussian points number:  23514
+cur window points number:  23103
+cur unseen window points number:  411
+iter:  0 
+100%|██████████| 100/100 [11:38<00:00, 61.16s/it]
+100%|██████████| 100/100 [11:38<00:00,  6.99s/it]
+/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3464: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/numpy/core/_methods.py:192: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+, geo_loss:  264234.937500
+idx:  10 , geo_loss_pixel:  0.235821 , color_loss_pixel:  0.1040
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  11
+[0m
+iter: 0, camera tensor error: 0.0066,  tracking loss: 18133.3477
+iter: 19, camera tensor error: 0.0073,  tracking loss: 17804.0742
+iter: 39, camera tensor error: 0.0063,  tracking loss: 17684.1836
+idx:11, re-rendering loss: 18133.35->17651.79.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  11
+[0m
+total gaussian points number:  24967
+iter:  0 , geo_loss:  34426.351562
+idx:  11 , geo_loss_pixel:  0.315759 , color_loss_pixel:  0.0880
+Current Map has been updated
+total gaussian points number:  24967
+cur window points number:  24520
+cur unseen window points number:  447
+iter:  0 , geo_loss:  224497.156250
+idx:  11 , geo_loss_pixel:  0.214715 , color_loss_pixel:  0.1046
+Mapper has updated point features.
+[35m
+Tracking KeyFrame  12
+[0m
+iter: 0, camera tensor error: 0.0038,  tracking loss: 22087.4844
+iter: 19, camera tensor error: 0.0052,  tracking loss: 21817.6855
+iter: 39, camera tensor error: 0.0062,  tracking loss: 21713.3242
+idx:12, re-rendering loss: 22087.48->21683.61.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+[32m
+Mapping KeyFrame  12
+[0m
+total gaussian points number:  26586
+iter:  0 , geo_loss:  57097.171875
+idx:  12 , geo_loss_pixel:  0.472072 , color_loss_pixel:  0.1331
+Current Map has been updated
+total gaussian points number:  26586
+cur window points number:  26067
+cur unseen window points number:  519
+iter:  0 , geo_loss:  333912.781250
+idx:  12 , geo_loss_pixel:  0.264898 , color_loss_pixel:  0.1078
+Mapper has updated point features.
+{'ate_score': 0.012299319060120143, 'rpe_score': (0.006592013004129431, 0.02011665743669185), 'kitti_score': (nan, nan), 'ate_std': 0.0057631595739976345}
+============================================================
+FINAL ATE: 1.23 cm
+Previous (no semantics): 2.23 cm
+Paper's result: 1.6 cm
+============================================================
