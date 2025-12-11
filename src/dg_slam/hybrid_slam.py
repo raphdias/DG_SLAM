@@ -572,7 +572,7 @@ s
 
             # Fine tracking with comprehensive error handling
             try:
-                print(f"  Starting fine tracking...")
+                print("  Starting fine tracking...")
                 refined_pose, tracking_info = self.fine_tracking(
                     frame,
                     coarse_poses[frame_idx],

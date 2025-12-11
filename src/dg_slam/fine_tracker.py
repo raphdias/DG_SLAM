@@ -104,25 +104,11 @@ class FineTracker:
         pose_matrix: torch.Tensor,
         active_sh_degree: int = 0
     ) -> dict[str, torch.Tensor]:
-        """
-        Render a frame using Gaussian splatting.
+        """Render with extensive validation."""
 
-        Args:
-            gaussians: GaussianModel instance
-            pose_matrix: 4x4 camera pose matrix (c2w)
-            active_sh_degree: Active spherical harmonics degree
+        print("    Validating Gaussians before render...")
 
-        Returns:
-            Dictionary containing rendered image, depth, and opacity
-        """
-        # Convert c2w to w2c for rendering
-        w2c = torch.inverse(pose_matrix)
-
-        # Extract camera parameters
-        world_view_transform = w2c.transpose(0, 1)
-        camera_center = pose_matrix[:3, 3]
-
-        # Get Gaussian parameters
+        # Get all parameters
         xyz = gaussians.get_xyz()
         features_dc = gaussians.get_features_dc()
         features_rest = gaussians.get_features_rest()
@@ -130,32 +116,125 @@ class FineTracker:
         scaling = gaussians.get_scaling()
         rotation = gaussians.get_rotation()
 
-        # Render
-        render_pkg = render(
-            xyz=xyz,
-            features_dc=features_dc,
-            features_rest=features_rest,
-            opacity=opacity,
-            scaling=scaling,
-            rotation=rotation,
-            active_sh_degree=active_sh_degree,
-            max_sh_degree=gaussians.max_sh_degree,
-            camera_center=camera_center,
-            world_view_transform=world_view_transform,
-            projection_matrix=self.projection_matrix,
-            FoVx=self.FoVx,
-            FoVy=self.FoVy,
-            image_height=self.H,
-            image_width=self.W,
-            scaling_modifier=1.0
-        )
+        n_gaussians = xyz.shape[0]
+        print(f"      Rendering {n_gaussians} Gaussians")
 
-        return {
-            'rgb': render_pkg['render'],
-            'depth': render_pkg['depth'],
-            'opacity': render_pkg['acc'],
-            'visibility_filter': render_pkg['visibility_filter']
+        # Check each parameter
+        params = {
+            'xyz': xyz,
+            'features_dc': features_dc,
+            'features_rest': features_rest,
+            'opacity': opacity,
+            'scaling': scaling,
+            'rotation': rotation
         }
+
+        for name, param in params.items():
+            # Shape check
+            if param.shape[0] != n_gaussians:
+                raise ValueError(f"{name} batch size mismatch: {param.shape[0]} vs {n_gaussians}")
+
+            # NaN check
+            if torch.isnan(param).any():
+                n_nan = torch.isnan(param).sum().item()
+                raise ValueError(f"{name} contains {n_nan} NaN values!")
+
+            # Inf check
+            if torch.isinf(param).any():
+                n_inf = torch.isinf(param).sum().item()
+                raise ValueError(f"{name} contains {n_inf} Inf values!")
+
+            # Device check
+            if param.device != xyz.device:
+                raise ValueError(f"{name} on wrong device: {param.device} vs {xyz.device}")
+
+            # Contiguity check
+            if not param.is_contiguous():
+                print(f"      WARNING: {name} not contiguous, making contiguous")
+                params[name] = param.contiguous()
+
+        # Print ranges
+        print(f"      xyz: [{xyz.min():.3f}, {xyz.max():.3f}]")
+        print(f"      opacity: [{opacity.min():.6f}, {opacity.max():.6f}]")
+        print(f"      scaling: [{scaling.min():.6f}, {scaling.max():.6f}]")
+        print(f"      rotation norm: [{torch.norm(rotation, dim=1).min():.6f}, {torch.norm(rotation, dim=1).max():.6f}]")
+
+        # Check for degenerate Gaussians
+        if (scaling < 1e-7).any():
+            n_tiny = (scaling < 1e-7).sum().item()
+            print(f"      WARNING: {n_tiny} scaling values < 1e-7 (may cause issues)")
+
+        if (opacity < 0.001).any():
+            n_transparent = (opacity < 0.001).sum().item()
+            print(f"      INFO: {n_transparent} nearly transparent Gaussians")
+
+        # Validate pose
+        print(f"    Validating pose...")
+        if pose_matrix.shape != (4, 4):
+            raise ValueError(f"Invalid pose shape: {pose_matrix.shape}")
+
+        if torch.isnan(pose_matrix).any() or torch.isinf(pose_matrix).any():
+            raise ValueError("Pose contains NaN or Inf")
+
+        # Convert c2w to w2c
+        w2c = torch.inverse(pose_matrix)
+        world_view_transform = w2c.transpose(0, 1)
+        camera_center = pose_matrix[:3, 3]
+
+        print(f"      Camera center: [{camera_center[0]:.3f}, {camera_center[1]:.3f}, {camera_center[2]:.3f}]")
+
+        # Ensure everything is contiguous
+        xyz = params['xyz'].contiguous()
+        features_dc = params['features_dc'].contiguous()
+        features_rest = params['features_rest'].contiguous()
+        opacity = params['opacity'].contiguous()
+        scaling = params['scaling'].contiguous()
+        rotation = params['rotation'].contiguous()
+
+        print(f"    Calling rasterizer...")
+
+        try:
+            # Render
+            render_pkg = render(
+                xyz=xyz,
+                features_dc=features_dc,
+                features_rest=features_rest,
+                opacity=opacity,
+                scaling=scaling,
+                rotation=rotation,
+                active_sh_degree=active_sh_degree,
+                max_sh_degree=gaussians.max_sh_degree,
+                camera_center=camera_center,
+                world_view_transform=world_view_transform,
+                projection_matrix=self.projection_matrix,
+                FoVx=self.FoVx,
+                FoVy=self.FoVy,
+                image_height=self.H,
+                image_width=self.W,
+                scaling_modifier=1.0
+            )
+
+            print(f"    ✓ Render successful")
+
+            return {
+                'rgb': render_pkg['render'],
+                'depth': render_pkg['depth'],
+                'opacity': render_pkg['acc'],
+                'visibility_filter': render_pkg['visibility_filter']
+            }
+
+        except Exception as e:
+            print(f"    ✗ Rasterizer error: {type(e).__name__}")
+            print(f"    Error message: {str(e)[:500]}")
+
+            # Print debug info
+            print(f"\n    Debug info:")
+            print(f"      Device: {xyz.device}")
+            print(f"      Image size: {self.H}x{self.W}")
+            print(f"      Projection matrix device: {self.projection_matrix.device}")
+            print(f"      All parameters on same device: {all(p.device == xyz.device for p in params.values())}")
+
+            raise
 
     def compute_tracking_loss(
         self,
