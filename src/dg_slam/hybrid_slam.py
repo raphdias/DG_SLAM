@@ -178,7 +178,7 @@ class HybridSLAM:
 
         # CRITICAL: Downsample to manageable size
         # The rasterizer cannot handle 200k+ Gaussians efficiently
-        MAX_INITIAL_GAUSSIANS = 10000  # Start conservative
+        MAX_INITIAL_GAUSSIANS = 1000  # Start conservative
 
         if len(points_world) > MAX_INITIAL_GAUSSIANS:
             print(f"  Downsampling to {MAX_INITIAL_GAUSSIANS} points...")
