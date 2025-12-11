@@ -259,8 +259,10 @@ class FineTracker:
 
             optimizer.zero_grad()
 
-            # Render scene from current pose
-            rendered_rgb, rendered_depth = gaussians.render(pose)  # must return requires_grad=True tensors
+            # Render scene from current pose using FineTracker's render_frame
+            render_pkg = self.render_frame(gaussians, pose)
+            rendered_rgb = render_pkg['rgb']
+            rendered_depth = render_pkg['depth']
 
             # Compute tracking loss
             total_loss, loss_dict = self.compute_tracking_loss(
