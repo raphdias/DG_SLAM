@@ -2,11 +2,28 @@
 
 DG-SLAM: Robust Dynamic Gaussian Splatting SLAM with Hybrid Pose Optimization (Xu et al., NeurIPS 2024)
 
+This repository provides an implementation of **DG-SLAM**, a robust RGB-D SLAM pipeline based on Gaussian Splatting and hybrid pose optimization, along with a complete evaluation framework containing experiment scripts, logs, and configurations.
+
+DG-SLAM introduces a two-stage tracking system (coarse + fine), motion masking via depth warping, and optional semantic segmentation support. This project also includes the full experimental setup used to evaluate the system on the TUM RGB-D dataset.
+
 ## Features
-- RGB-D SLAM with hybrid pose optimization 
-- two stage tracking, coarse + fine (Gauss Optimization)
-- Motion masking using depth warping
-- Supports TUM RGB-D dataset format
+### SLAM Pipeline
+- RGB-D SLAM using hybrid pose optimization
+- Two-stage tracking:
+  - Coarse tracking: neural-network estimation
+  - Fine tracking: Gaussian splatting optimization
+- Motion masking with depth warping
+- Optional semantic masks (e.g., YOLO-generated)
+- Supports the TUM RGB-D dataset (RPY sequences recommended)
+
+### Evaluation Tools
+- Baseline SLAM experiments
+- Semantic segmentation tests
+- Density variation studies
+- Frame-skipping robustness stress tests
+- Execution logs, timing results, and visualizations
+
+---
 
 ## Installation
 
@@ -76,6 +93,7 @@ slam = HybridSLAM(
 ```
 
 ## Project Structure
+### DG_SLAM Implementation
 ```
 dg_slam/
 ├── src/dg_slam/
@@ -92,10 +110,26 @@ dg_slam/
 └── README.md
 ```
 
+### Evaluation Framework
+```
+experiments/
+├── baseline/        # No semantics
+├── density/         # Gaussian density variations
+├── robustness/      # Frame skipping tests
+├── semantic/        # Semantic mask generation & tests
+results/
+├── logs/            # Output logs
+├── figures/         # Plots and visualizations
+```
 ## NOTES
 
 - We have camera pose estimation and depth warp 
 - DROID-SLAM is not used
+
+## Team
+* Ahmad Hassan
+* Raphael Dias
+* Mir Munavvar Ali
 
 ## Citation
 ```bibtex
