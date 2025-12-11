@@ -5,7 +5,7 @@ description = 'Python library DG-SLAM implementation'
 readme = 'README.md'
 requires-python = '>=3.11'
 # TODO: Remove PIL from imports, there is probably a faster way to decode Images
-dependencies = ['numpy>=2.0.1', 'scipy>=1.16.3', 'pillow==11.0.0', 'scikit-image', 'matplotlib']
+dependencies = ['numpy>=2.0.1', 'scipy>=1.16.3', 'pillow==11.0.0', 'scikit-image', 'matplotlib', 'mathutils']
 
 [project.optional-dependencies]
 dev = ['flake8', 'build']
