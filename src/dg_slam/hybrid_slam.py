@@ -251,11 +251,14 @@ class HybridSLAM:
         n_frames = len(dataset) if max_frames is None else min(max_frames, len(dataset))
         coarse_poses = self.coarse_tracking(dataset, max_frames)
         first_frame = dataset[0]
+        print("REFFINING3")
         self.gaussian_model = self.initialize_map(first_frame)
+        print("REFFINING2")
         refined_poses = []
         tracking_stats = []
         for i in range(n_frames):
             frame = dataset[i]
+            print("REFFINING1")
             if self.keyframe_selector.should_add_keyframe(frame):
                 self.keyframe_selector.add_keyframe(frame)
                 if use_motion_masks and len(self.keyframe_selector.keyframes) > 1:
