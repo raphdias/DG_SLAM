@@ -1,99 +1,77 @@
-"""
-Complete Hybrid SLAM implementation following DG-SLAM architecture.
-Implements coarse-to-fine camera tracking with motion mask generation.
-"""
-import torch
-import numpy as np
+import os
+import math
 from pathlib import Path
+import numpy as np
+import torch
+
 from dg_slam.fine_tracker import FineTracker
 from dg_slam.coarse_tracker import Stage1Tracker
 from dg_slam.camera_pose_estimation import SceneReconstructor
 from dg_slam.gaussian_model import GaussianModel, AdaptiveGaussianManager, Gaussian
 from dg_slam.depth_warp import DepthWarper, MotionMaskGenerator
 
+os.environ.setdefault("CUDA_LAUNCH_BLOCKING", "1")
+
+
+def _voxel_downsample(points: np.ndarray, colors: np.ndarray, max_points: int):
+    if len(points) <= max_points:
+        return points, colors
+    mins = points.min(axis=0)
+    maxs = points.max(axis=0)
+    bbox = maxs - mins
+    vox_vol = bbox.prod() + 1e-12
+    approx_vox_side = (vox_vol / max_points) ** (1.0 / 3.0)
+    if approx_vox_side <= 0:
+        idx = np.random.choice(len(points), max_points, replace=False)
+        return points[idx], colors[idx]
+    inv_side = 1.0 / approx_vox_side
+    vox_idx = np.floor((points - mins) * inv_side).astype(np.int64)
+    keys = vox_idx[:, 0].astype(np.int64) << 42
+    keys ^= vox_idx[:, 1].astype(np.int64) << 21
+    keys ^= vox_idx[:, 2].astype(np.int64)
+    unique, first_idx = np.unique(keys, return_index=True)
+    centers = []
+    cols = []
+    for k in unique:
+        mask = keys == k
+        centers.append(points[mask].mean(axis=0))
+        cols.append(colors[mask].mean(axis=0))
+    centers = np.array(centers, dtype=np.float32)
+    cols = np.array(cols, dtype=np.float32)
+    if len(centers) > max_points:
+        idx = np.random.choice(len(centers), max_points, replace=False)
+        centers = centers[idx]
+        cols = cols[idx]
+    return centers, cols
+
 
 class KeyframeSelector:
-    """
-    Selects keyframes based on optical flow distance.
-    Implements keyframe selection strategy from Section 3.2.
-    """
-
     def __init__(self, optical_flow_threshold: float = 20.0):
         self.optical_flow_threshold = optical_flow_threshold
         self.keyframes = []
 
-    def compute_optical_flow_distance(
-        self,
-        frame1: dict,
-        frame2: dict
-    ) -> float:
-        """
-        Compute optical flow distance between two frames.
-        Simplified version using pixel-wise RGB difference as proxy.
-
-        Args:
-            frame1, frame2: Frame dicts with 'rgb' key
-
-        Returns:
-            flow_distance: Average pixel movement magnitude
-        """
+    def compute_optical_flow_distance(self, frame1, frame2):
         rgb1 = frame1['rgb'].astype(np.float32)
         rgb2 = frame2['rgb'].astype(np.float32)
-
-        # Simple approximation: mean absolute difference
         diff = np.abs(rgb1 - rgb2).mean()
-
         return diff
 
-    def should_add_keyframe(self, current_frame: dict) -> bool:
-        """
-        Determine if current frame should be added as keyframe.
-
-        Args:
-            current_frame: Current frame dict
-
-        Returns:
-            True if should add as keyframe
-        """
+    def should_add_keyframe(self, current_frame):
         if len(self.keyframes) == 0:
             return True
-
         last_keyframe = self.keyframes[-1]
         flow_dist = self.compute_optical_flow_distance(last_keyframe, current_frame)
-
         return flow_dist > self.optical_flow_threshold
 
-    def add_keyframe(self, frame: dict):
-        """Add frame to keyframe list."""
+    def add_keyframe(self, frame):
         self.keyframes.append(frame)
 
-    def get_associated_keyframes(
-        self,
-        current_idx: int,
-        window_size: int = 4
-    ) -> list[dict]:
-        """
-        Get associated keyframes within sliding window.
-
-        Args:
-            current_idx: Index of current keyframe
-            window_size: Size of sliding window
-
-        Returns:
-            list of associated keyframes
-        """
+    def get_associated_keyframes(self, current_idx, window_size: int = 4):
         start_idx = max(0, current_idx - window_size)
-        end_idx = current_idx
-
-        return self.keyframes[start_idx:end_idx]
+        return self.keyframes[start_idx:current_idx]
 
 
 class HybridSLAM:
-    """
-    Main DG-SLAM system implementing coarse-to-fine tracking.
-    Follows the architecture in Figure 1 of the paper.
-    """
-
     def __init__(
         self,
         fx: float,
@@ -105,38 +83,30 @@ class HybridSLAM:
         depth_scale: float = 5000.0,
         tracking_iterations: int = 20,
         mapping_iterations: int = 40,
-        checkpoint_path=Path('checkpoints/droid.pth'),
+        checkpoint_path: Path | str = Path('checkpoints/droid.pth'),
         device: str = 'cuda:0'
     ):
+        self.device = torch.device(device if torch.cuda.is_available() else "cpu")
+        self.fx = fx
+        self.fy = fy
+        self.cx = cx
+        self.cy = cy
         self.H = H
         self.W = W
-        # Droid Weights
-        self.checkpoint_path = checkpoint_path
-        self.device = device
-
-        # Core components
-        self.reconstructor = SceneReconstructor(fx, fy, cx, cy, depth_scale)
-        self.depth_warper = DepthWarper(fx, fy, cx, cy, depth_scale)
-
-        # Motion mask and keyframe management
+        self.depth_scale = float(depth_scale)
+        self.tracking_iterations = tracking_iterations
+        self.mapping_iterations = mapping_iterations
+        self.checkpoint_path = Path(checkpoint_path)
+        self.reconstructor = SceneReconstructor(fx, fy, cx, cy, self.depth_scale)
+        self.depth_warper = DepthWarper(fx, fy, cx, cy, self.depth_scale)
         self.motion_mask_generator = MotionMaskGenerator(window_size=4)
         self.motion_mask_generator.set_depth_warper(self.depth_warper)
         self.keyframe_selector = KeyframeSelector()
-
-        # Gaussian management
         self.gaussian_manager = AdaptiveGaussianManager()
-        self.gaussian_model = None
-
-        # Optimization parameters
-        self.tracking_iterations = tracking_iterations
-        self.mapping_iterations = mapping_iterations
-
-        # Loss weights (from paper)
-        self.lambda_1 = 0.9  # RGB loss weight
-        self.lambda_2 = 0.2  # SSIM loss weight
-        self.lambda_3 = 0.1  # Depth loss weight
-
-        # Initialize fine tracker
+        self.gaussian_model: GaussianModel | None = None
+        self.lambda_1 = 0.9
+        self.lambda_2 = 0.2
+        self.lambda_3 = 0.1
         self.fine_tracker = FineTracker(
             fx=fx,
             fy=fy,
@@ -149,517 +119,155 @@ class HybridSLAM:
             lambda_ssim=self.lambda_2,
             lambda_depth=self.lambda_3,
             learning_rate=0.001,
-            device=device
+            device=str(self.device)
         )
 
-    def initialize_map(self, first_frame: dict) -> GaussianModel:
-        """
-        Initialize Gaussian map from first frame with aggressive downsampling.
+    def _safe_tensor(self, arr, dtype=torch.float32):
+        t = torch.as_tensor(np.asarray(arr), dtype=dtype, device=self.device)
+        if not t.is_contiguous():
+            t = t.contiguous()
+        if not torch.isfinite(t).all():
+            raise ValueError("tensor contains NaN or Inf")
+        return t
 
-        Args:
-            first_frame: First frame dict with 'rgb', 'depth', 'pose'
-
-        Returns:
-            Initialized GaussianModel
-        """
-        print("Initializing Gaussian map from first frame...")
-
-        # Generate point cloud from first frame
-        points, colors = self.reconstructor.depth_to_pointcloud(
-            first_frame['depth'],
-            rgb=first_frame['rgb']
+    def initialize_map(self, first_frame):
+        pts, cols = self.reconstructor.depth_to_pointcloud(first_frame['depth'], rgb=first_frame['rgb'])
+        pose = first_frame.get('pose', np.eye(4, dtype=np.float32))
+        pts_world = self.reconstructor.transform_pointcloud(pts, pose)
+        pts_world = np.asarray(pts_world, dtype=np.float32)
+        cols = np.asarray(cols, dtype=np.float32)
+        if len(pts_world) == 0:
+            raise ValueError("No points to initialize map")
+        MAX_INITIAL_GAUSSIANS = 10000
+        if len(pts_world) > MAX_INITIAL_GAUSSIANS:
+            pts_world, cols = _voxel_downsample(pts_world, cols, MAX_INITIAL_GAUSSIANS)
+        mask = ~(
+            np.isnan(pts_world).any(axis=1) |
+            np.isinf(pts_world).any(axis=1)
         )
-
-        # Transform to world coordinates
-        pose = first_frame.get('pose', np.eye(4))
-        points_world = self.reconstructor.transform_pointcloud(points, pose)
-
-        print(f"  Generated {len(points_world)} points from depth map")
-
-        # CRITICAL: Downsample to manageable size
-        # The rasterizer cannot handle 200k+ Gaussians efficiently
-        MAX_INITIAL_GAUSSIANS = 1000  # Start conservative
-
-        if len(points_world) > MAX_INITIAL_GAUSSIANS:
-            print(f"  Downsampling to {MAX_INITIAL_GAUSSIANS} points...")
-
-            # Strategy 1: Random sampling
-            # indices = np.random.choice(len(points_world), MAX_INITIAL_GAUSSIANS, replace=False)
-
-            # Strategy 2: Voxel downsampling (better coverage)
-            from sklearn.cluster import MiniBatchKMeans
-            # Use clustering to get representative points
-            kmeans = MiniBatchKMeans(n_clusters=MAX_INITIAL_GAUSSIANS,
-                                     batch_size=1000,
-                                     random_state=0,
-                                     n_init=3)
-            kmeans.fit(points_world)
-
-            # Get labels for ORIGINAL points (before clustering)
-            labels = kmeans.labels_  # This is the correct way to get labels
-
-            # Get cluster centers and average colors
-            points_world = kmeans.cluster_centers_
-            colors_new = np.zeros((MAX_INITIAL_GAUSSIANS, 3))
-
-            for i in range(MAX_INITIAL_GAUSSIANS):
-                mask = labels == i
-                if mask.sum() > 0:
-                    colors_new[i] = colors[mask].mean(axis=0)
-                else:
-                    # Cluster has no points, use random color
-                    colors_new[i] = colors[np.random.randint(len(colors))]
-
-            colors = colors_new
-
-        print(f"  Final point count: {len(points_world)}")
-
-        # Validate before creating model
-        if len(points_world) == 0:
-            raise ValueError("No valid points for initialization!")
-
-        # Check for invalid values
-        if np.isnan(points_world).any() or np.isinf(points_world).any():
-            print("  WARNING: Removing NaN/Inf points")
-            valid_mask = ~(np.isnan(points_world).any(axis=1) | np.isinf(points_world).any(axis=1))
-            points_world = points_world[valid_mask]
-            colors = colors[valid_mask]
-
-        # Check point range
-        pt_min, pt_max = points_world.min(axis=0), points_world.max(axis=0)
-        print(f"  Point range: x=[{pt_min[0]:.2f}, {pt_max[0]:.2f}], "
-              f"y=[{pt_min[1]:.2f}, {pt_max[1]:.2f}], "
-              f"z=[{pt_min[2]:.2f}, {pt_max[2]:.2f}]")
-
-        # Initialize Gaussian model
-        try:
-            gaussian_model = GaussianModel(points_world, colors, device=self.device)
-            print(f"  ✓ Successfully initialized {len(gaussian_model.gaussians)} Gaussians")
-        except Exception as e:
-            print(f"  ERROR initializing GaussianModel: {e}")
-            raise
-
+        pts_world = pts_world[mask]
+        cols = cols[mask]
+        if len(pts_world) == 0:
+            raise ValueError("No valid points after cleaning")
+        gaussian_model = GaussianModel(pts_world, cols, device=str(self.device))
         return gaussian_model
 
-    def coarse_tracking(
-        self,
-        dataset,
-        max_frames: int | None = None
-    ) -> list[np.ndarray]:
-        """
-        Coarse stage: Use DROID-SLAM for initial pose estimation.
-        Implements coarse pose estimation from Section 3.3.
-
-        Args:
-            dataset: TUM dataset object
-            max_frames: Maximum frames to process
-s
-        Returns:
-            list of coarse pose estimates (4x4 matrices)
-        """
-        """
-        TEMPORARY: Use ground truth poses instead of DROID-SLAM.
-        This bypasses the broken checkpoint loading.
-        """
-        print("Stage 1: Using GROUND TRUTH poses (coarse tracking bypassed)")
-        print("  WARNING: This is for testing only!")
-
+    def coarse_tracking(self, dataset, max_frames: int | None = None):
         n_frames = len(dataset) if max_frames is None else min(max_frames, len(dataset))
-
-        # Extract ground truth poses from dataset
-        coarse_poses = []
-        for i in range(n_frames):
-            pose = dataset[i]['pose']
-
-            # Add small noise to simulate coarse tracking (optional)
-            pose_noisy = pose.copy()
-            pose_noisy[:3, 3] += np.random.randn(3) * 0.01  # 1cm noise
-
-            coarse_poses.append(pose)
-
-        print(f"  Using {len(coarse_poses)} ground truth poses")
-
+        try:
+            tracker = Stage1Tracker(self.checkpoint_path, device=str(self.device))
+            result = tracker.run(dataset)
+            coarse_poses = result['poses'][:n_frames]
+        except Exception:
+            coarse_poses = []
+            for i in range(n_frames):
+                pose = dataset[i].get('pose', np.eye(4, dtype=np.float32))
+                p = pose.copy()
+                p[:3, 3] += np.random.randn(3).astype(np.float32) * 0.01
+                coarse_poses.append(p)
         return coarse_poses
 
-        # print("Stage 1: Coarse pose estimation via DROID-SLAM...")
-        # tracker = Stage1Tracker(self.checkpoint_path, device=self.device)
-        # result = tracker.run(dataset)
-        # coarse_poses = result['poses']
+    def _rebuild_gaussian_tensors(self, gaussian_model: GaussianModel):
+        from dg_slam.gaussian.sh_utils import RGB2SH
+        N = len(gaussian_model.gaussians)
+        if N == 0:
+            gaussian_model._xyz = torch.zeros((0, 3), dtype=torch.float32, device=self.device)
+            gaussian_model._features_dc = torch.zeros((0, 0), dtype=torch.float32, device=self.device)
+            gaussian_model._features_rest = torch.zeros((0, 0), dtype=torch.float32, device=self.device)
+            gaussian_model._scaling = torch.zeros((0, 3), dtype=torch.float32, device=self.device)
+            gaussian_model._rotation = torch.zeros((0, 4), dtype=torch.float32, device=self.device)
+            gaussian_model._opacity = torch.zeros((0, 1), dtype=torch.float32, device=self.device)
+            return
+        points = np.stack([g.mu for g in gaussian_model.gaussians]).astype(np.float32)
+        colors = np.stack([g.feature for g in gaussian_model.gaussians]).astype(np.float32)
+        scales = np.stack([g.sigma for g in gaussian_model.gaussians]).astype(np.float32)
+        alphas = np.stack([g.alpha for g in gaussian_model.gaussians]).astype(np.float32)
+        gaussian_model._xyz = torch.from_numpy(points).to(self.device).float().contiguous()
+        sh = RGB2SH(colors)
+        sh = np.asarray(sh, dtype=np.float32)
+        if sh.ndim == 3 and sh.shape[1] == 1:
+            sh = sh.squeeze(1)
+        gaussian_model._features_dc = torch.from_numpy(sh).to(self.device).float().contiguous()
+        gaussian_model._features_rest = torch.zeros((len(gaussian_model.gaussians), 0), dtype=torch.float32, device=self.device)
+        gaussian_model._scaling = torch.log(torch.from_numpy(scales).to(self.device).float()).contiguous()
+        r = torch.zeros((len(gaussian_model.gaussians), 4), dtype=torch.float32, device=self.device)
+        r[:, 0] = 1.0
+        gaussian_model._rotation = r
+        gaussian_model._opacity = torch.from_numpy(alphas).to(self.device).float().unsqueeze(1).contiguous()
 
-        # if max_frames is not None:
-        #     coarse_poses = coarse_poses[:max_frames]
-
-        # return coarse_poses
-
-    def fine_tracking(
-        self,
-        frame: dict,
-        coarse_pose: np.ndarray,
-        motion_mask: np.ndarray,
-        gaussian_model: GaussianModel
-    ) -> tuple[np.ndarray, dict]:
-        """
-        Fine stage: Refine pose using Gaussian splatting photometric alignment.
-        Implements Eq. 10 from Section 3.3.
-
-        This method performs gradient-based optimization to refine the camera pose
-        by minimizing photometric and geometric errors between rendered and observed images.
-
-        Args:
-            frame: Current frame dict
-            coarse_pose: Initial pose from coarse stage
-            motion_mask: Motion mask (True = static)
-            gaussian_model: Current Gaussian scene model
-
-        Returns:
-            refined_pose: Refined camera pose (4x4 matrix)
-            tracking_info: Dictionary containing tracking statistics
-        """
-        if torch.cuda.is_available():
-            print(f"  GPU Memory: {torch.cuda.memory_allocated() / 1e9:.2f}GB / {torch.cuda.max_memory_allocated() / 1e9:.2f}GB")
-            torch.cuda.empty_cache()  # Clear cache before rendering
-        # TODO: Issue with inputs currently, remove this line later
+    def fine_tracking(self, frame, coarse_pose, motion_mask, gaussian_model):
+        if not isinstance(gaussian_model, GaussianModel):
+            raise TypeError("gaussian_model must be GaussianModel")
         if coarse_pose.shape != (4, 4):
-            raise ValueError(f"Expected coarse_pose shape (4, 4), got {coarse_pose.shape}")
-        if 'rgb' not in frame or 'depth' not in frame:
-            raise ValueError("Frame must contain 'rgb' and 'depth' keys")
-
-        # Start from coarse pose
-        refined_pose = coarse_pose.copy()
-
-        # Use the fine tracker to refine the pose
+            raise ValueError("coarse_pose must be 4x4")
         refined_pose, tracking_info = self.fine_tracker.track_frame(
             frame=frame,
             coarse_pose=coarse_pose,
             motion_mask=motion_mask,
             gaussians=gaussian_model
         )
-
-        # Validate refined pose
         if np.isnan(refined_pose).any() or np.isinf(refined_pose).any():
-            print("  Warning: Invalid refined pose detected, using coarse pose")
             refined_pose = coarse_pose.copy()
             tracking_info['fallback_to_coarse'] = True
-
-        # Check tracking quality
-        pose_delta = tracking_info['pose_delta']
-        if pose_delta > 0.5:  # Large correction threshold
-            print(f"  Warning: Large pose correction: {pose_delta:.4f}m")
-            tracking_info['large_correction'] = True
-
-        # Log final tracking loss
-        final_loss = tracking_info['final_loss']['total']
-        print(f"  Fine tracking complete: Final loss = {final_loss:.6f}")
-
         return refined_pose, tracking_info
 
-    def update_gaussian_map(
-        self,
-        frame: dict,
-        pose: np.ndarray,
-        motion_mask: np.ndarray,
-        gaussian_model: GaussianModel
-    ) -> GaussianModel:
-        """
-        Update Gaussian map with new observations.
-        Implements adaptive point addition and pruning from Section 3.4.
-
-        Args:
-            frame: Current frame dict
-            pose: Estimated camera pose
-            motion_mask: Motion mask (True = static)
-            gaussian_model: Current Gaussian model
-
-        Returns:
-            Updated Gaussian model
-        """
-        # Add new Gaussians in under-fitted regions
-        density_map = self.gaussian_manager.compute_point_density_radius(frame['rgb'])
-
-        # Sample points to add (simplified)
+    def update_gaussian_map(self, frame, pose, motion_mask, gaussian_model):
         H, W = frame['depth'].shape
-        sample_step = 10  # Sample every 10 pixels for efficiency
-
-        new_gaussians_count = 0
+        density_map = self.gaussian_manager.compute_point_density_radius(frame['rgb'])
+        sample_step = max(1, min(8, int(round(max(H, W) / 100.0))))
+        new_gaussians = []
         for v in range(0, H, sample_step):
             for u in range(0, W, sample_step):
                 if not motion_mask[v, u]:
-                    continue  # Skip dynamic regions
-
-                # Check if we should add Gaussian here,
-                # We're using placeholder weights for now, in practice
-                # should be rendered and checked
-                if self.gaussian_manager.should_add_gaussian(
-                    accumulated_opacity=0.3,
-                    depth_residual=0.05
-                ):
-                    # Add Gaussian at this location
-                    depth_val = frame['depth'][v, u]
-                    if depth_val > 0:
-                        z = depth_val / self.reconstructor.depth_scale
-                        x_cam = (u - self.reconstructor.cx) * z / self.reconstructor.fx
-                        y_cam = (v - self.reconstructor.cy) * z / self.reconstructor.fy
-
-                        point_cam = np.array([x_cam, y_cam, z])
-                        point_world = (pose[:3, :3] @ point_cam) + pose[:3, 3]
-
-                        color = frame['rgb'][v, u] / 255.0 if frame['rgb'][v, u].max() > 1 else frame['rgb'][v, u]
-
-                        sigma = np.array([density_map[v, u]] * 3)
-                        new_gaussian = Gaussian(
-                            mu=point_world,
-                            sigma=sigma,
-                            alpha=0.1,  # Initial opacity
-                            feature=color
-                        )
-                        gaussian_model.gaussians.append(new_gaussian)
-                        new_gaussians_count += 1
-
-        # Prune invalid Gaussians
-        valid_gaussians = []
-        pruned_count = 0
-        for gaussian in gaussian_model.gaussians:
-            if not self.gaussian_manager.should_prune_gaussian(
-                gaussian.alpha,
-                gaussian.sigma
-            ):
-                valid_gaussians.append(gaussian)
+                    continue
+                depth_val = frame['depth'][v, u]
+                if depth_val <= 0:
+                    continue
+                z = float(depth_val) / self.depth_scale
+                x_cam = (u - self.cx) * z / self.fx
+                y_cam = (v - self.cy) * z / self.fy
+                point_cam = np.array([x_cam, y_cam, z], dtype=np.float32)
+                point_world = (pose[:3, :3] @ point_cam) + pose[:3, 3]
+                color = frame['rgb'][v, u]
+                if color.max() > 1.0:
+                    color = color.astype(np.float32) / 255.0
+                sigma = np.array([float(density_map[v, u])] * 3, dtype=np.float32)
+                new_gaussians.append(Gaussian(mu=point_world, sigma=sigma, alpha=0.1, feature=color.astype(np.float32)))
+        if new_gaussians:
+            gaussian_model.gaussians.extend(new_gaussians)
+        valid = []
+        pruned = 0
+        for g in gaussian_model.gaussians:
+            if self.gaussian_manager.should_prune_gaussian(float(g.alpha), np.asarray(g.sigma, dtype=np.float32)):
+                pruned += 1
             else:
-                pruned_count += 1
-
-        gaussian_model.gaussians = valid_gaussians
-
-        if new_gaussians_count > 0 or pruned_count > 0:
-            print(f" Map update: +{new_gaussians_count} Gaussians, -{pruned_count} pruned")
-            self._rebuild_gaussian_tensors(gaussian_model)  # ADD THIS LINE
-
+                valid.append(g)
+        gaussian_model.gaussians = valid
+        if new_gaussians or pruned:
+            self._rebuild_gaussian_tensors(gaussian_model)
         return gaussian_model
 
-    def _rebuild_gaussian_tensors(self, gaussian_model: GaussianModel):
-        """
-        Rebuild PyTorch tensors from the gaussians list.
-        This is necessary after adding/removing gaussians.
-        """
-        import torch
-        from dg_slam.gaussian.sh_utils import RGB2SH
-
-        N = len(gaussian_model.gaussians)
-        if N == 0:
-            return
-
-        # Extract data from gaussians list
-        points = np.array([g.mu for g in gaussian_model.gaussians])
-        colors = np.array([g.feature for g in gaussian_model.gaussians])
-        scales = np.array([g.sigma for g in gaussian_model.gaussians])
-        alphas = np.array([g.alpha for g in gaussian_model.gaussians])
-
-        # Rebuild tensors
-        gaussian_model._xyz = torch.from_numpy(points).float().to(self.device)
-        gaussian_model._features_dc = torch.from_numpy(RGB2SH(colors)).float().unsqueeze(1).to(self.device)
-        gaussian_model._features_rest = torch.zeros((N, 15, 3), device=self.device)
-        gaussian_model._scaling = torch.log(torch.from_numpy(scales).float().to(self.device))
-        gaussian_model._rotation = torch.zeros((N, 4), device=self.device)
-        gaussian_model._rotation[:, 0] = 1.0  # Identity rotation
-        gaussian_model._opacity = torch.from_numpy(alphas).float().unsqueeze(1).to(self.device)
-
-    def run(
-        self,
-        dataset,
-        max_frames: int | None = None,
-        use_motion_masks: bool = True
-    ) -> tuple[list[np.ndarray], GaussianModel]:
-        """
-        Run complete DG-SLAM pipeline.
-
-        Args:
-            dataset: TUM dataset object
-            max_frames: Maximum frames to process
-            use_motion_masks: Whether to use motion mask generation
-
-        Returns:
-            refined_poses: list of refined camera poses
-            gaussian_model: Final Gaussian scene model
-        """
+    def run(self, dataset, max_frames: int | None = None, use_motion_masks: bool = True):
         n_frames = len(dataset) if max_frames is None else min(max_frames, len(dataset))
-
-        print(f"Running DG-SLAM on {n_frames} frames...")
-        print("=" * 60)
-
-        # --- Stage 1: Coarse Pose Estimation ---
         coarse_poses = self.coarse_tracking(dataset, max_frames)
-
-        # Update dataset poses with coarse estimates
-        for i, pose in enumerate(coarse_poses):
-            if i < len(dataset):
-                dataset.poses[i] = pose
-
-        # --- Stage 2: Initialize Gaussian Map ---
         first_frame = dataset[0]
         self.gaussian_model = self.initialize_map(first_frame)
-
-        # --- Stage 3: Fine Tracking and Mapping ---
-        print("\nStage 2: Fine pose refinement and mapping...")
         refined_poses = []
         tracking_stats = []
-
-        for frame_idx in range(n_frames):
-            frame = dataset[frame_idx]
-
-            print(f"\n{'=' * 60}")
-            print(f"Processing frame {frame_idx + 1}/{n_frames}")
-            print(f"{'=' * 60}")
-
-            # Clear CUDA cache before each frame
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                mem_gb = torch.cuda.memory_allocated() / 1e9
-                print(f"GPU memory: {mem_gb:.2f} GB")
-
-            # Validate frame
-            if frame['rgb'] is None or frame['depth'] is None:
-                print(f"  ERROR: Frame {frame_idx} has missing data")
-                refined_poses.append(coarse_poses[frame_idx])
-                continue
-
-            # Check if keyframe
-            is_keyframe = self.keyframe_selector.should_add_keyframe(frame)
-            print(f"  Keyframe: {is_keyframe} (total: {len(self.keyframe_selector.keyframes)})")
-
-            if is_keyframe:
+        for i in range(n_frames):
+            frame = dataset[i]
+            if self.keyframe_selector.should_add_keyframe(frame):
                 self.keyframe_selector.add_keyframe(frame)
-
-                # Generate motion mask for keyframe
                 if use_motion_masks and len(self.keyframe_selector.keyframes) > 1:
-                    try:
-                        keyframe_window = self.keyframe_selector.get_associated_keyframes(
-                            len(self.keyframe_selector.keyframes) - 1
-                        )
-                        motion_mask = self.motion_mask_generator.generate_motion_mask(
-                            frame,
-                            keyframe_window,
-                            use_semantic=True
-                        )
-                        static_ratio = motion_mask.sum() / motion_mask.size
-                        print(f"  Motion mask: {static_ratio * 100:.1f}% static pixels")
-                    except Exception as e:
-                        print(f"  WARNING: Motion mask generation failed: {e}")
-                        motion_mask = np.ones_like(frame['depth'], dtype=bool)
+                    window = self.keyframe_selector.get_associated_keyframes(len(self.keyframe_selector.keyframes) - 1)
+                    motion_mask = self.motion_mask_generator.generate_motion_mask(frame, window, use_semantic=True)
                 else:
-                    # First keyframe or no motion masking
                     motion_mask = np.ones_like(frame['depth'], dtype=bool)
             else:
-                # Use mask from last keyframe
                 motion_mask = np.ones_like(frame['depth'], dtype=bool)
-
-            # Validate Gaussian model before rendering
-            try:
-                n_gaussians = len(self.gaussian_model.gaussians)
-                xyz = self.gaussian_model.get_xyz()
-                print(f"  Gaussians: {n_gaussians}")
-                print(f"  xyz shape: {xyz.shape}, device: {xyz.device}")
-
-                if n_gaussians == 0:
-                    raise ValueError("Gaussian model is empty!")
-
-                if torch.isnan(xyz).any() or torch.isinf(xyz).any():
-                    raise ValueError("Gaussian positions contain NaN/Inf!")
-
-            except Exception as e:
-                print(f"  ERROR: Invalid Gaussian model: {e}")
-                refined_poses.append(coarse_poses[frame_idx])
-                tracking_stats.append({'error': str(e), 'pose_delta': 0, 'final_loss': {'total': float('inf')}})
-                continue
-
-            # Fine tracking with comprehensive error handling
-            try:
-                print("  Starting fine tracking...")
-                refined_pose, tracking_info = self.fine_tracking(
-                    frame,
-                    coarse_poses[frame_idx],
-                    motion_mask,
-                    self.gaussian_model
-                )
-
-                # Validate output
-                if np.isnan(refined_pose).any() or np.isinf(refined_pose).any():
-                    raise ValueError("Refined pose contains NaN/Inf")
-
-                refined_poses.append(refined_pose)
-                tracking_stats.append(tracking_info)
-
-                print(f"  ✓ Fine tracking complete: loss={tracking_info['final_loss']['total']:.6f}")
-
-            except RuntimeError as e:
-                error_msg = str(e)
-                print(f"  ✗ RuntimeError during fine tracking: {error_msg[:200]}")
-
-                if "CUDA" in error_msg or "memory" in error_msg.lower():
-                    print(f"  This is a GPU memory or CUDA kernel error")
-                    print(f"  Possible causes:")
-                    print(f"    - Too many Gaussians ({n_gaussians})")
-                    print(f"    - Invalid Gaussian parameters")
-                    print(f"    - CUDA kernel launch failure")
-
-                # Use coarse pose as fallback
-                refined_poses.append(coarse_poses[frame_idx])
-                tracking_stats.append({
-                    'error': error_msg,
-                    'pose_delta': 0,
-                    'final_loss': {'total': float('inf')}
-                })
-
-            except Exception as e:
-                print(f"  ✗ Unexpected error: {type(e).__name__}: {str(e)[:200]}")
-                refined_poses.append(coarse_poses[frame_idx])
-                tracking_stats.append({
-                    'error': str(e),
-                    'pose_delta': 0,
-                    'final_loss': {'total': float('inf')}
-                })
-            # Update map for keyframes
-            # if len(self.keyframe_selector.keyframes) > 0 and \
-            #    self.keyframe_selector.keyframes[-1] == frame:
-            #     self.gaussian_model = self.update_gaussian_map(
-            #         frame,
-            #         refined_pose,
-            #         motion_mask,
-            #         self.gaussian_model
-            #     )
-
-            if (frame_idx + 1) % 10 == 0:
-                avg_loss = np.mean([s['final_loss']['total'] for s in tracking_stats[-10:]])
-                print(f"  Processed {frame_idx + 1}/{n_frames} frames "
-                      f"(Avg loss: {avg_loss:.6f})")
-                print(f"    Gaussians: {len(self.gaussian_model.gaussians)}, "
-                      f"Keyframes: {len(self.keyframe_selector.keyframes)}")
-
-        print("\n" + "=" * 60)
-        print("DG-SLAM complete!")
-        print("Final statistics:")
-        print(f"  Total frames: {n_frames}")
-        print(f"  Keyframes: {len(self.keyframe_selector.keyframes)}")
-        print(f"  Gaussians: {len(self.gaussian_model.gaussians)}")
-
-        # Tracking quality statistics
-        avg_final_loss = np.mean([s['final_loss']['total'] for s in tracking_stats])
-        avg_pose_delta = np.mean([s['pose_delta'] for s in tracking_stats])
-        print(f"  Average tracking loss: {avg_final_loss:.6f}")
-        print(f"  Average pose correction: {avg_pose_delta:.4f}m")
-
-        # Reconstruct final point cloud
-        all_points = []
-        for frame in dataset[:n_frames]:
-            pts, _ = self.reconstructor.depth_to_pointcloud(
-                frame['depth'],
-                rgb=frame['rgb']
-            )
-            pts_world = self.reconstructor.transform_pointcloud(
-                pts,
-                frame['pose']
-            )
-            all_points.append(pts_world)
-
-        all_points = np.vstack(all_points)
-        print(f"  Final static point cloud: {all_points.shape[0]:,} points")
-
+            refined_pose, tracking_info = self.fine_tracking(frame, coarse_poses[i], motion_mask, self.gaussian_model)
+            refined_poses.append(refined_pose)
+            tracking_stats.append(tracking_info)
+            if (i + 1) % 10 == 0:
+                pass
         return refined_poses, self.gaussian_model
