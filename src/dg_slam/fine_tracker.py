@@ -150,27 +150,23 @@ class FineTracker:
         }
 
     def compute_tracking_loss(self, rendered_rgb: torch.Tensor, rendered_depth: torch.Tensor, gt_rgb: torch.Tensor, gt_depth: torch.Tensor, motion_mask: torch.Tensor) -> tuple:
+        if not isinstance(motion_mask, torch.Tensor):
+            motion_mask = torch.as_tensor(motion_mask, device=self.device, dtype=torch.bool)
+        if not isinstance(gt_depth, torch.Tensor):
+            gt_depth = torch.as_tensor(gt_depth, device=self.device)
+
+        if motion_mask.ndim == 2:
+            motion_mask = motion_mask.unsqueeze(0)
+        if gt_depth.ndim == 2:
+            gt_depth = gt_depth.unsqueeze(0)
+
         mask = motion_mask.float().to(rendered_rgb.device)
-        if mask.ndim == 2:
-            mask = mask.unsqueeze(0)
         rgb_loss = l1_loss(rendered_rgb * mask, gt_rgb * mask)
         ssim_loss = 1.0 - ssim((rendered_rgb * mask).unsqueeze(0), (gt_rgb * mask).unsqueeze(0))
 
-        # Ensure depth + mask shapes match BEFORE using them
-        if motion_mask.dim() == 2:
-            motion_mask = motion_mask.unsqueeze(0)
-
-        if gt_depth.dim() == 2:
-            gt_depth = gt_depth.unsqueeze(0)
-
-        # Now safe to compute valid_depth
         valid_depth = (gt_depth > 0) & motion_mask.bool()
-
-        if valid_depth.sum() > 0:
-            depth_loss = l1_loss(
-                rendered_depth[valid_depth],
-                gt_depth[valid_depth]
-            )
+        if valid_depth.any():
+            depth_loss = l1_loss(rendered_depth[valid_depth], gt_depth[valid_depth])
         else:
             depth_loss = torch.tensor(0.0, device=self.device)
 
