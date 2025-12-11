@@ -154,8 +154,7 @@ class HybridSLAM:
 
     def initialize_map(self, first_frame: dict) -> GaussianModel:
         """
-        Initialize Gaussian map from first frame.
-        Implements map initialization from Section 3.4.
+        Initialize Gaussian map from first frame with aggressive downsampling.
 
         Args:
             first_frame: First frame dict with 'rgb', 'depth', 'pose'
@@ -171,14 +170,77 @@ class HybridSLAM:
             rgb=first_frame['rgb']
         )
 
-        # Transform to world coordinates (first frame pose is identity or given)
+        # Transform to world coordinates
         pose = first_frame.get('pose', np.eye(4))
         points_world = self.reconstructor.transform_pointcloud(points, pose)
 
-        # Initialize Gaussian model
-        gaussian_model = GaussianModel(points_world, colors)
+        print(f"  Generated {len(points_world)} points from depth map")
 
-        print(f"  Initialized {len(gaussian_model.gaussians)} Gaussians")
+        # CRITICAL: Downsample to manageable size
+        # The rasterizer cannot handle 200k+ Gaussians efficiently
+        MAX_INITIAL_GAUSSIANS = 10000  # Start conservative
+
+        if len(points_world) > MAX_INITIAL_GAUSSIANS:
+            print(f"  Downsampling to {MAX_INITIAL_GAUSSIANS} points...")
+
+            # Strategy 1: Random sampling
+            # indices = np.random.choice(len(points_world), MAX_INITIAL_GAUSSIANS, replace=False)
+
+            # Strategy 2: Voxel downsampling (better coverage)
+            from sklearn.cluster import MiniBatchKMeans
+            try:
+                # Use clustering to get representative points
+                kmeans = MiniBatchKMeans(n_clusters=MAX_INITIAL_GAUSSIANS,
+                                         batch_size=1000,
+                                         random_state=0,
+                                         n_init=3)
+                kmeans.fit(points_world)
+                points_world = kmeans.cluster_centers_
+
+                # Get average color per cluster
+                labels = kmeans.predict(points_world)
+                colors_new = np.zeros((MAX_INITIAL_GAUSSIANS, 3))
+                for i in range(MAX_INITIAL_GAUSSIANS):
+                    mask = labels == i
+                    if mask.sum() > 0:
+                        colors_new[i] = colors[mask].mean(axis=0)
+                colors = colors_new
+
+                print(f"  Used k-means clustering for better coverage")
+
+            except ImportError:
+                # Fallback: simple random sampling
+                print(f"  sklearn not available, using random sampling")
+                indices = np.random.choice(len(points_world), MAX_INITIAL_GAUSSIANS, replace=False)
+                points_world = points_world[indices]
+                colors = colors[indices]
+
+        print(f"  Final point count: {len(points_world)}")
+
+        # Validate before creating model
+        if len(points_world) == 0:
+            raise ValueError("No valid points for initialization!")
+
+        # Check for invalid values
+        if np.isnan(points_world).any() or np.isinf(points_world).any():
+            print("  WARNING: Removing NaN/Inf points")
+            valid_mask = ~(np.isnan(points_world).any(axis=1) | np.isinf(points_world).any(axis=1))
+            points_world = points_world[valid_mask]
+            colors = colors[valid_mask]
+
+        # Check point range
+        pt_min, pt_max = points_world.min(axis=0), points_world.max(axis=0)
+        print(f"  Point range: x=[{pt_min[0]:.2f}, {pt_max[0]:.2f}], "
+              f"y=[{pt_min[1]:.2f}, {pt_max[1]:.2f}], "
+              f"z=[{pt_min[2]:.2f}, {pt_max[2]:.2f}]")
+
+        # Initialize Gaussian model
+        try:
+            gaussian_model = GaussianModel(points_world, colors, device=self.device)
+            print(f"  ✓ Successfully initialized {len(gaussian_model.gaussians)} Gaussians")
+        except Exception as e:
+            print(f"  ERROR initializing GaussianModel: {e}")
+            raise
 
         return gaussian_model
 
