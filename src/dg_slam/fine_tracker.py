@@ -250,7 +250,7 @@ class FineTracker:
             motion_mask = motion_mask.unsqueeze(0)
 
         # --- Initialize pose tensor ---
-        pose = torch.as_tensor(coarse_pose, dtype=torch.float32, device=device, requires_grad=True)
+        pose = torch.as_tensor(coarse_pose, dtype=torch.float32, device=device)
 
         optimizer = torch.optim.Adam([pose], lr=self.learning_rate)
 
