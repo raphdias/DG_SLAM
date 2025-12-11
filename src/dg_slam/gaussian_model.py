@@ -17,6 +17,18 @@ class GaussianModel:
     def __init__(self, points, colors, device='cuda:0'):
         # Initialize each point as a Gaussian blob with small sigma and color
         N = len(points)
+
+        N = len(points)
+
+        # Validate inputs
+        if N == 0:
+            raise ValueError("Cannot initialize GaussianModel with 0 points")
+
+        if len(colors) != N:
+            raise ValueError(f"Points ({N}) and colors ({len(colors)}) must have same length")
+
+        print(f"Initializing GaussianModel with {N} points on {device}")
+
         self.gaussians = []
         for p, c in zip(points, colors):
             sigma = np.array([0.05, 0.05, 0.05])  # small initial extent

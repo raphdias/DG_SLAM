@@ -2,6 +2,7 @@
 Complete Hybrid SLAM implementation following DG-SLAM architecture.
 Implements coarse-to-fine camera tracking with motion mask generation.
 """
+import torch
 import numpy as np
 from pathlib import Path
 from dg_slam.fine_tracker import FineTracker
@@ -232,7 +233,9 @@ s
             refined_pose: Refined camera pose (4x4 matrix)
             tracking_info: Dictionary containing tracking statistics
         """
-
+        if torch.cuda.is_available():
+            print(f"  GPU Memory: {torch.cuda.memory_allocated() / 1e9:.2f}GB / {torch.cuda.max_memory_allocated() / 1e9:.2f}GB")
+            torch.cuda.empty_cache()  # Clear cache before rendering
         # TODO: Issue with inputs currently, remove this line later
         if coarse_pose.shape != (4, 4):
             raise ValueError(f"Expected coarse_pose shape (4, 4), got {coarse_pose.shape}")
@@ -346,8 +349,36 @@ s
 
         if new_gaussians_count > 0 or pruned_count > 0:
             print(f" Map update: +{new_gaussians_count} Gaussians, -{pruned_count} pruned")
+            self._rebuild_gaussian_tensors(gaussian_model)  # ADD THIS LINE
 
         return gaussian_model
+
+    def _rebuild_gaussian_tensors(self, gaussian_model: GaussianModel):
+        """
+        Rebuild PyTorch tensors from the gaussians list.
+        This is necessary after adding/removing gaussians.
+        """
+        import torch
+        from dg_slam.gaussian.sh_utils import RGB2SH
+
+        N = len(gaussian_model.gaussians)
+        if N == 0:
+            return
+
+        # Extract data from gaussians list
+        points = np.array([g.mu for g in gaussian_model.gaussians])
+        colors = np.array([g.feature for g in gaussian_model.gaussians])
+        scales = np.array([g.sigma for g in gaussian_model.gaussians])
+        alphas = np.array([g.alpha for g in gaussian_model.gaussians])
+
+        # Rebuild tensors
+        gaussian_model._xyz = torch.from_numpy(points).float().to(self.device)
+        gaussian_model._features_dc = torch.from_numpy(RGB2SH(colors)).float().unsqueeze(1).to(self.device)
+        gaussian_model._features_rest = torch.zeros((N, 15, 3), device=self.device)
+        gaussian_model._scaling = torch.log(torch.from_numpy(scales).float().to(self.device))
+        gaussian_model._rotation = torch.zeros((N, 4), device=self.device)
+        gaussian_model._rotation[:, 0] = 1.0  # Identity rotation
+        gaussian_model._opacity = torch.from_numpy(alphas).float().unsqueeze(1).to(self.device)
 
     def run(
         self,
@@ -424,14 +455,14 @@ s
             tracking_stats.append(tracking_info)
 
             # Update map for keyframes
-            if len(self.keyframe_selector.keyframes) > 0 and \
-               self.keyframe_selector.keyframes[-1] == frame:
-                self.gaussian_model = self.update_gaussian_map(
-                    frame,
-                    refined_pose,
-                    motion_mask,
-                    self.gaussian_model
-                )
+            # if len(self.keyframe_selector.keyframes) > 0 and \
+            #    self.keyframe_selector.keyframes[-1] == frame:
+            #     self.gaussian_model = self.update_gaussian_map(
+            #         frame,
+            #         refined_pose,
+            #         motion_mask,
+            #         self.gaussian_model
+            #     )
 
             if (frame_idx + 1) % 10 == 0:
                 avg_loss = np.mean([s['final_loss']['total'] for s in tracking_stats[-10:]])
