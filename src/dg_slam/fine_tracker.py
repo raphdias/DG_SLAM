@@ -238,12 +238,7 @@ class FineTracker:
             render_output = self.render_frame(gaussians=gaussians, pose_matrix=current_pose_matrix, active_sh_degree=0)
             rendered_rgb = render_output['rgb']
             rendered_depth = render_output['depth']
-            if rendered_rgb.dim() == 3 and rendered_rgb.shape[0] != 3 and rendered_rgb.shape[-1] == 3:
-                rendered_rgb = rendered_rgb.permute(2, 0, 1)
-            if rendered_rgb.device != gt_rgb.device:
-                rendered_rgb = rendered_rgb.to(gt_rgb.device)
-            if rendered_depth.device != gt_depth.device:
-                rendered_depth = rendered_depth.to(gt_depth.device)
+
             print("=== SHAPES BEFORE CALL ===")
             print("rendered_rgb:", type(rendered_rgb), rendered_rgb.shape if hasattr(rendered_rgb, 'shape') else None)
             print("rendered_depth:", type(rendered_depth), rendered_depth.shape if hasattr(rendered_depth, 'shape') else None)
@@ -251,6 +246,12 @@ class FineTracker:
             print("gt_depth:", type(gt_depth), gt_depth.shape if hasattr(gt_depth, 'shape') else None)
             print("motion_mask:", type(motion_mask_tensor), motion_mask_tensor.shape if hasattr(motion_mask_tensor, 'shape') else None)
 
+            if rendered_rgb.dim() == 3 and rendered_rgb.shape[0] != 3 and rendered_rgb.shape[-1] == 3:
+                rendered_rgb = rendered_rgb.permute(2, 0, 1)
+            if rendered_rgb.device != gt_rgb.device:
+                rendered_rgb = rendered_rgb.to(gt_rgb.device)
+            if rendered_depth.device != gt_depth.device:
+                rendered_depth = rendered_depth.to(gt_depth.device)
             loss, loss_dict = self.compute_tracking_loss(
                 rendered_rgb=rendered_rgb,
                 rendered_depth=rendered_depth,
