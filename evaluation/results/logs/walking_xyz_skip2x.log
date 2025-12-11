@@ -1,0 +1,290 @@
+(dg-slam) ubuntu@DESKTOP-VHQEPJ2:~/projects/DG-SLAM$ python run_tum_frame_skip.py     --datapath data/TUM     --weights checkpoints/droid.pth     --id 1     --disable_vis 2>&1 | tee results/walking_xyz_skip
+/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/torch/functional.py:478: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1659484808560/work/aten/src/ATen/native/TensorShape.cpp:2894.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+Start Running DG-SLAM FRAME SKIP TEST (2x speed, NO SEMANTICS)....
+Performing evaluation on rgbd_dataset_freiburg3_walking_xyz
+checkpoints/droid.pth
+⭐️ 🌙  mapping begin!!
+FRAME SKIPPING: 2x speed - 414 frames (from 828)
+QUICK TEST MODE: Processing 50 frames with 2x frame skipping
+ 60%|██████    | 30/50 [00:19<00:01, 11.37it/s]/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/torch/nn/functional.py:4215: UserWarning: Default grid_sample and affine_grid behavior has changed to align_corners=False since 1.3.0. Please specify align_corners=True if the old behavior is desired. See the documentation of grid_sample for details.
+  warnings.warn(
+ 98%|█████████▊| 49/50 [02:50<00:02,  2.71s/it]
+Mapping KeyFrame  0
+
+total gaussian points number:  19104
+iter:  0 , geo_loss:  121336.937500
+iter:  100 , geo_loss:  33726.992188
+iter:  200 , geo_loss:  25216.134766
+iter:  300 , geo_loss:  22133.542969 , color_loss:  13840.003906
+iter:  400 , geo_loss:  20497.914062 , color_loss:  12769.941406
+idx:  0 , geo_loss_pixel:  0.127319 , color_loss_pixel:  0.0796
+Current Map has been updated
+total gaussian points number:  19104
+cur window points number:  18568
+cur unseen window points number:  536
+iter:  0 , geo_loss:  29670.832031
+iter:  100 , geo_loss:  22540.695312
+iter:  200 , geo_loss:  20536.333984
+iter:  300 , geo_loss:  19464.253906 , color_loss:  10978.568359
+iter:  400 , geo_loss:  18780.566406 , color_loss:  10691.209961
+idx:  0 , geo_loss_pixel:  0.120873 , color_loss_pixel:  0.0686
+Mapper has updated point features.
+Tracker has updated the parameters from Mapper.
+
+Tracking KeyFrame  0
+
+
+Tracking KeyFrame  1
+
+
+Mapping KeyFrame  1
+
+total gaussian points number:  21044
+iter:  0 , geo_loss:  934683.687500
+idx:  1 , geo_loss_pixel:  0.470268 , color_loss_pixel:  0.1562
+Current Map has been updated
+total gaussian points number:  21044
+cur window points number:  20539
+cur unseen window points number:  505
+iter:  0 , geo_loss:  111407.390625
+idx:  1 , geo_loss_pixel:  0.259800 , color_loss_pixel:  0.1787
+Mapper has updated point features.
+
+Tracking KeyFrame  2
+
+iter: 0, camera tensor error: 0.0035,  tracking loss: 36818.1992
+iter: 19, camera tensor error: 0.0046,  tracking loss: 35295.7773
+iter: 39, camera tensor error: 0.0075,  tracking loss: 34318.2344
+idx:2, re-rendering loss: 36818.20->33927.43.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  2
+
+total gaussian points number:  22083
+iter:  0 , geo_loss:  57886.585938
+idx:  2 , geo_loss_pixel:  0.282334 , color_loss_pixel:  0.1149
+Current Map has been updated
+total gaussian points number:  22083
+cur window points number:  21594
+cur unseen window points number:  489
+iter:  0 , geo_loss:  127256.679688
+idx:  2 , geo_loss_pixel:  0.247264 , color_loss_pixel:  0.1666
+Mapper has updated point features.
+
+Tracking KeyFrame  3
+
+iter: 0, camera tensor error: 0.0035,  tracking loss: 35494.3789
+iter: 19, camera tensor error: 0.0066,  tracking loss: 32602.1582
+iter: 39, camera tensor error: 0.0107,  tracking loss: 31241.2617
+idx:3, re-rendering loss: 35494.38->30696.26.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  3
+
+total gaussian points number:  23079
+iter:  0 , geo_loss:  73225.007812
+idx:  3 , geo_loss_pixel:  0.390040 , color_loss_pixel:  0.1599
+Current Map has been updated
+total gaussian points number:  23079
+cur window points number:  22639
+cur unseen window points number:  440
+iter:  0 , geo_loss:  178638.468750
+idx:  3 , geo_loss_pixel:  0.264925 , color_loss_pixel:  0.1774
+Mapper has updated point features.
+
+Tracking KeyFrame  4
+
+iter: 0, camera tensor error: 0.0029,  tracking loss: 43175.5391
+iter: 19, camera tensor error: 0.0079,  tracking loss: 40341.0391
+iter: 39, camera tensor error: 0.0136,  tracking loss: 38754.2734
+idx:4, re-rendering loss: 43175.54->38057.82.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  4
+
+total gaussian points number:  24116
+iter:  0 , geo_loss:  80742.476562
+idx:  4 , geo_loss_pixel:  0.420520 , color_loss_pixel:  0.2041
+Current Map has been updated
+total gaussian points number:  24116
+cur window points number:  23702
+cur unseen window points number:  414
+iter:  0 , geo_loss:  243890.531250
+idx:  4 , geo_loss_pixel:  0.281606 , color_loss_pixel:  0.1961
+Mapper has updated point features.
+
+Tracking KeyFrame  5
+
+iter: 0, camera tensor error: 0.0055,  tracking loss: 43363.7227
+iter: 19, camera tensor error: 0.0089,  tracking loss: 40940.0781
+iter: 39, camera tensor error: 0.0146,  tracking loss: 39088.4727
+idx:5, re-rendering loss: 43363.72->38027.00.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  5
+
+total gaussian points number:  25124
+iter:  0 , geo_loss:  92101.054688
+idx:  5 , geo_loss_pixel:  0.483494 , color_loss_pixel:  0.2189
+Current Map has been updated
+total gaussian points number:  25124
+cur window points number:  24719
+cur unseen window points number:  405
+iter:  0 , geo_loss:  309799.187500
+idx:  5 , geo_loss_pixel:  0.306033 , color_loss_pixel:  0.2098
+Mapper has updated point features.
+
+Tracking KeyFrame  6
+
+iter: 0, camera tensor error: 0.0091,  tracking loss: 39911.0312
+iter: 19, camera tensor error: 0.0127,  tracking loss: 37796.0117
+iter: 39, camera tensor error: 0.0174,  tracking loss: 35881.9023
+idx:6, re-rendering loss: 39911.03->35285.72.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  6
+
+total gaussian points number:  26261
+iter:  0 , geo_loss:  80397.750000
+idx:  6 , geo_loss_pixel:  0.367522 , color_loss_pixel:  0.1732
+Current Map has been updated
+total gaussian points number:  26261
+cur window points number:  25849
+cur unseen window points number:  412
+iter:  0 , geo_loss:  346894.250000
+idx:  6 , geo_loss_pixel:  0.304786 , color_loss_pixel:  0.2031
+Mapper has updated point features.
+
+Tracking KeyFrame  7
+
+iter: 0, camera tensor error: 0.0049,  tracking loss: 39080.2500
+iter: 19, camera tensor error: 0.0090,  tracking loss: 36561.1094
+iter: 39, camera tensor error: 0.0149,  tracking loss: 34640.1719
+idx:7, re-rendering loss: 39080.25->33850.89.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  7
+
+total gaussian points number:  27515
+iter:  0 , geo_loss:  87938.710938
+idx:  7 , geo_loss_pixel:  0.444019 , color_loss_pixel:  0.1738
+Current Map has been updated
+total gaussian points number:  27515
+cur window points number:  27104
+cur unseen window points number:  411
+iter:  0 , geo_loss:  415681.812500
+idx:  7 , geo_loss_pixel:  0.305904 , color_loss_pixel:  0.1970
+Mapper has updated point features.
+
+Tracking KeyFrame  8
+
+iter: 0, camera tensor error: 0.0046,  tracking loss: 42225.3672
+iter: 19, camera tensor error: 0.0090,  tracking loss: 39562.1719
+iter: 39, camera tensor error: 0.0132,  tracking loss: 37958.4297
+idx:8, re-rendering loss: 42225.37->37311.54.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  8
+
+total gaussian points number:  28935
+iter:  0 , geo_loss:  89722.937500
+idx:  8 , geo_loss_pixel:  0.485304 , color_loss_pixel:  0.1892
+Current Map has been updated
+total gaussian points number:  28935
+cur window points number:  28531
+cur unseen window points number:  404
+iter:  0 , geo_loss:  487539.437500
+idx:  8 , geo_loss_pixel:  0.316602 , color_loss_pixel:  0.1989
+Mapper has updated point features.
+
+Tracking KeyFrame  9
+
+iter: 0, camera tensor error: 0.0068,  tracking loss: 42898.7617
+iter: 19, camera tensor error: 0.0109,  tracking loss: 40053.2031
+iter: 39, camera tensor error: 0.0155,  tracking loss: 38785.8711
+idx:9, re-rendering loss: 42898.76->38239.33.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  9
+
+total gaussian points number:  30179
+iter:  0 , geo_loss:  87366.835938
+idx:  9 , geo_loss_pixel:  0.438283 , color_loss_pixel:  0.1394
+Current Map has been updated
+total gaussian points number:  30179
+cur window points number:  29765
+cur unseen window points number:  414
+iter:  0 , geo_loss:  551597.812500
+idx:  9 , geo_loss_pixel:  0.326129 , color_loss_pixel:  0.1966
+Mapper has updated point features.
+
+Tracking KeyFrame  10
+
+iter: 0, camera tensor error: 0.0048,  tracking loss: 51126.5273
+iter: 19, camera tensor error: 0.0096,  tracking loss: 48586.0312
+iter: 39, camera tensor error: 0.0145,  tracking loss: 46743.8516
+idx:10, re-rendering loss: 51126.53->46127.52.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  10
+
+total gaussian points number:  31433
+iter:  0 , geo_loss:  91170.218750
+idx:  10 , geo_loss_pixel:  0.509016 , color_loss_pixel:  0.1673
+Current Map has been updated
+total gaussian points number:  31433
+cur window points number:  30981
+100%|██████████| 50/50 [08:33<00:00, 10.27s/it]
+/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3464: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/ubuntu/miniconda3/envs/dg-slam/lib/python3.10/site-packages/numpy/core/_methods.py:192: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+cur unseen window points number:  452
+iter:  0 , geo_loss:  623656.125000
+idx:  10 , geo_loss_pixel:  0.348538 , color_loss_pixel:  0.2005
+Mapper has updated point features.
+
+Tracking KeyFrame  11
+
+iter: 0, camera tensor error: 0.0065,  tracking loss: 52027.6953
+iter: 19, camera tensor error: 0.0105,  tracking loss: 49284.4531
+iter: 39, camera tensor error: 0.0144,  tracking loss: 48648.7344
+idx:11, re-rendering loss: 52027.70->48401.13.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  11
+
+total gaussian points number:  32859
+iter:  0 , geo_loss:  77796.390625
+idx:  11 , geo_loss_pixel:  0.518238 , color_loss_pixel:  0.1376
+Current Map has been updated
+total gaussian points number:  32859
+cur window points number:  31684
+cur unseen window points number:  1175
+iter:  0 , geo_loss:  657821.437500
+idx:  11 , geo_loss_pixel:  0.360638 , color_loss_pixel:  0.1936
+Mapper has updated point features.
+
+Tracking KeyFrame  12
+
+iter: 0, camera tensor error: 0.0054,  tracking loss: 54487.8047
+iter: 19, camera tensor error: 0.0084,  tracking loss: 52521.7617
+iter: 39, camera tensor error: 0.0115,  tracking loss: 51810.0234
+idx:12, re-rendering loss: 54487.80->51718.25.
+Finish tracking opt, plan iter: 50, actual opt iter: 50
+
+Mapping KeyFrame  12
+
+total gaussian points number:  34233
+iter:  0 , geo_loss:  81668.343750
+idx:  12 , geo_loss_pixel:  0.588703 , color_loss_pixel:  0.1658
+Current Map has been updated
+total gaussian points number:  34233
+cur window points number:  33786
+cur unseen window points number:  447
+iter:  0 , geo_loss:  643494.937500
+idx:  12 , geo_loss_pixel:  0.400052 , color_loss_pixel:  0.2240
+Mapper has updated point features.
+{'ate_score': 0.02266497862271579, 'rpe_score': (0.008897526692515456, 0.03619300806664841), 'kitti_score': (nan, nan), 'ate_std': 0.009628672635652829}
+[0.02266497862271579]
