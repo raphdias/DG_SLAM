@@ -149,37 +149,73 @@ class FineTracker:
             'visibility_filter': render_pkg['visibility_filter']
         }
 
-    def compute_tracking_loss(self, rendered_rgb, rendered_depth, gt_rgb, gt_depth, motion_mask):
-        if not isinstance(motion_mask, torch.Tensor):
-            motion_mask = torch.as_tensor(motion_mask, device=self.device, dtype=torch.bool)
-        if not isinstance(gt_depth, torch.Tensor):
-            gt_depth = torch.as_tensor(gt_depth, device=self.device)
 
+def compute_tracking_loss(
+        self,
+        rendered_rgb: torch.Tensor,
+        rendered_depth: torch.Tensor,
+        gt_rgb: torch.Tensor,
+        gt_depth: torch.Tensor,
+        motion_mask: torch.Tensor,
+    ) -> tuple:
+
+        # Normalize shapes FIRST (before computing any masked losses)
+
+        # motion_mask: [H, W] -> [1, H, W]
         if motion_mask.ndim == 2:
             motion_mask = motion_mask.unsqueeze(0)
+
+        # gt_depth: [H, W] -> [1, H, W]
         if gt_depth.ndim == 2:
             gt_depth = gt_depth.unsqueeze(0)
+
+        # gt_rgb: [3, H, W] -> [1, 3, H, W]
+        if gt_rgb.ndim == 3:
+            gt_rgb = gt_rgb.unsqueeze(0)
+
+        # rendered_rgb: [3, H, W] -> [1, 3, H, W]
+        if rendered_rgb.ndim == 3:
+            rendered_rgb = rendered_rgb.unsqueeze(0)
+
+        # rendered_depth: [H, W] -> [1, H, W]
         if rendered_depth.ndim == 2:
             rendered_depth = rendered_depth.unsqueeze(0)
 
-        mask = motion_mask.float().to(rendered_rgb.device)
-        rgb_loss = l1_loss(rendered_rgb * mask, gt_rgb * mask)
-        ssim_loss = 1.0 - ssim((rendered_rgb * mask).unsqueeze(0), (gt_rgb * mask).unsqueeze(0))
+        # Mask must match depth size
+        motion_mask = motion_mask.to(rendered_rgb.device).float()
 
+        # RGB Loss
+        rgb_loss = l1_loss(rendered_rgb * motion_mask, gt_rgb * motion_mask)
+
+        ssim_loss = 1.0 - ssim(
+            rendered_rgb * motion_mask,
+            gt_rgb * motion_mask
+        )
+
+        # Depth Loss
         valid_depth = (gt_depth > 0) & motion_mask.bool()
+
         if valid_depth.any():
             depth_loss = l1_loss(rendered_depth[valid_depth], gt_depth[valid_depth])
         else:
             depth_loss = torch.tensor(0.0, device=self.device)
 
-        total_loss = self.lambda_rgb * rgb_loss + self.lambda_ssim * ssim_loss + self.lambda_depth * depth_loss
+        # Combined Loss
+        total_loss = (
+            self.lambda_rgb * rgb_loss
+            + self.lambda_ssim * ssim_loss
+            + self.lambda_depth * depth_loss
+        )
+
         loss_dict = {
             'total': total_loss.item(),
             'rgb': rgb_loss.item(),
             'ssim': ssim_loss.item(),
             'depth': depth_loss.item()
         }
+
         return total_loss, loss_dict
+
 
     def track_frame(self, frame: dict, coarse_pose: np.ndarray, motion_mask: np.ndarray, gaussians, verbose: bool = False) -> tuple:
         gt_rgb = torch.from_numpy(frame['rgb']).to(self.device).float()
