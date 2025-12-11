@@ -3,7 +3,7 @@ import math
 from pathlib import Path
 import numpy as np
 import torch
-
+import cv2
 from dg_slam.fine_tracker import FineTracker
 from dg_slam.coarse_tracker import Stage1Tracker
 from dg_slam.camera_pose_estimation import SceneReconstructor
@@ -84,8 +84,11 @@ class HybridSLAM:
         tracking_iterations: int = 20,
         mapping_iterations: int = 40,
         checkpoint_path: Path | str = Path('checkpoints/droid.pth'),
-        device: str = 'cuda:0'
+        device: str = 'cuda:0',
+        semantic_mask_dir: str | Path | None = None
     ):
+        self.semantic_mask_dir = Path(semantic_mask_dir) if semantic_mask_dir is not None else None
+
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.fx = fx
         self.fy = fy
@@ -256,6 +259,8 @@ class HybridSLAM:
         tracking_stats = []
         for i in range(n_frames):
             frame = dataset[i]
+
+            # Decide whether this frame is a keyframe
             if self.keyframe_selector.should_add_keyframe(frame):
                 self.keyframe_selector.add_keyframe(frame)
                 if use_motion_masks and len(self.keyframe_selector.keyframes) > 1:
@@ -265,6 +270,15 @@ class HybridSLAM:
                     motion_mask = np.ones_like(frame['depth'], dtype=bool)
             else:
                 motion_mask = np.ones_like(frame['depth'], dtype=bool)
+
+            # --- Inject semantic mask if available ---
+            if self.semantic_mask_dir is not None:
+                mask_file = self.semantic_mask_dir / f"{i:06d}.png"  # assumes mask filenames match frame index
+                if mask_file.exists():
+                    sem_mask = cv2.imread(str(mask_file), cv2.IMREAD_GRAYSCALE)
+                    sem_mask = sem_mask > 127  # binary mask
+                    motion_mask = motion_mask & (~sem_mask)  # remove person pixels from motion_mask
+
             refined_pose, tracking_info = self.fine_tracking(frame, coarse_poses[i], motion_mask, self.gaussian_model)
             refined_poses.append(refined_pose)
             tracking_stats.append(tracking_info)
