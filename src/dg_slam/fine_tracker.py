@@ -216,6 +216,7 @@ class FineTracker:
         return total_loss, loss_dict
 
     def track_frame(self, frame: dict, coarse_pose: np.ndarray, motion_mask: np.ndarray, gaussians, verbose: bool = False) -> tuple:
+        print("TRACKING FRAME NOW")
 
         def _ensure_tensor(x, name, device=self.device):
             if not isinstance(x, torch.Tensor):
