@@ -188,7 +188,7 @@ class FineTracker:
 
         # SSIM loss placeholder (can use pytorch_ssim or kornia)
         ssim_loss = 1.0 - self.ssim_loss_fn(rendered_rgb * motion_mask.unsqueeze(1),
-                                       gt_rgb * motion_mask.unsqueeze(1))
+                                            gt_rgb * motion_mask.unsqueeze(1))
 
         # Depth loss (only valid pixels)
         valid_depth = (gt_depth > 0) & motion_mask
@@ -225,113 +225,56 @@ class FineTracker:
             ((mu_x**2 + mu_y**2 + C1) * (sigma_x + sigma_y + C2))
         return ssim_map.mean()
 
-    def track_frame(self, frame: dict, coarse_pose: np.ndarray, motion_mask: np.ndarray, gaussians, verbose: bool = False) -> tuple:
-        print("TRACKING FRAME NOW")
+    def track_frame(
+        self,
+        frame: dict,
+        coarse_pose: np.ndarray,
+        motion_mask: np.ndarray,
+        gaussians,
+        verbose: bool = False
+    ) -> tuple[np.ndarray, dict]:
 
-        def _ensure_tensor(x, name, device=self.device):
-            if not isinstance(x, torch.Tensor):
-                try:
-                    x = torch.as_tensor(x, device=device)
-                except Exception as ex:
-                    print(f"[BUG] {name} cannot be turned into a tensor: {type(x)} -> {ex}")
-                    raise
-            # detach and move to device to avoid lazy objects / graph issues
-            x = x.detach()
-            return x
-        gt_rgb = torch.from_numpy(frame['rgb']).to(self.device).float()
-        if gt_rgb.max() > 1.0:
-            gt_rgb = gt_rgb / 255.0
-        gt_rgb = gt_rgb.permute(2, 0, 1)
-        gt_depth = torch.from_numpy(frame['depth']).to(self.device).float()
-        if 'depth_scale' in frame:
-            gt_depth = gt_depth / float(frame['depth_scale'])
-        else:
-            gt_depth = gt_depth / 5000.0
-        motion_mask_tensor = torch.from_numpy(motion_mask).to(self.device)
-        coarse_pose_tensor = torch.from_numpy(coarse_pose).to(self.device).float().contiguous()
-        initial_pose_matrix = coarse_pose_tensor
-        delta = torch.zeros(6, device=self.device, dtype=torch.float32, requires_grad=True)
-        optimizer = torch.optim.Adam([delta], lr=self.learning_rate)
-        loss_history = []
+        device = self.device
+
+        # --- Convert frame data to tensors ---
+        gt_rgb = torch.as_tensor(frame['rgb'], dtype=torch.float32, device=device)
+        gt_depth = torch.as_tensor(frame['depth'], dtype=torch.float32, device=device)
+
+        # Ensure batch and channel dims
+        if gt_rgb.ndim == 3:  # HWC -> NCHW
+            gt_rgb = gt_rgb.permute(2, 0, 1).unsqueeze(0) if gt_rgb.shape[2] == 3 else gt_rgb.unsqueeze(0)
+        if gt_depth.ndim == 2:
+            gt_depth = gt_depth.unsqueeze(0)
+        motion_mask = torch.as_tensor(motion_mask, dtype=torch.bool, device=device)
+        if motion_mask.ndim == 2:
+            motion_mask = motion_mask.unsqueeze(0)
+
+        # --- Initialize pose tensor ---
+        pose = torch.as_tensor(coarse_pose, dtype=torch.float32, device=device, requires_grad=True)
+
+        optimizer = torch.optim.Adam([pose], lr=self.learning_rate)
+
+        # --- Optimization loop ---
         for iter_idx in range(self.tracking_iterations):
+
             optimizer.zero_grad()
-            exp_mat = se3_exp(delta)
-            current_pose_matrix = initial_pose_matrix @ exp_mat
-            render_output = self.render_frame(gaussians=gaussians, pose_matrix=current_pose_matrix, active_sh_degree=0)
-            rendered_rgb = render_output['rgb']
-            rendered_depth = render_output['depth']
 
-            try:
-                rendered_rgb_t = _ensure_tensor(rendered_rgb, "rendered_rgb")
-                rendered_depth_t = _ensure_tensor(rendered_depth, "rendered_depth")
-                gt_rgb_t = _ensure_tensor(gt_rgb, "gt_rgb")
-                gt_depth_t = _ensure_tensor(gt_depth, "gt_depth")
-                motion_mask_t = _ensure_tensor(motion_mask_tensor, "motion_mask")
+            # Render scene from current pose
+            rendered_rgb, rendered_depth = gaussians.render(pose)  # must return requires_grad=True tensors
 
-                # make mask boolean and place on same device as rendered tensors
-                motion_mask_t = motion_mask_t.to(device=rendered_rgb_t.device, dtype=torch.bool)
+            # Compute tracking loss
+            total_loss, loss_dict = self.compute_tracking_loss(
+                rendered_rgb, rendered_depth, gt_rgb, gt_depth, motion_mask
+            )
 
-                # normalize dimensions to batch-first canonical shapes
-                if rendered_rgb_t.ndim == 3:
-                    rendered_rgb_t = rendered_rgb_t.unsqueeze(0)
-                if rendered_depth_t.ndim == 2:
-                    rendered_depth_t = rendered_depth_t.unsqueeze(0)
-                if gt_rgb_t.ndim == 3:
-                    gt_rgb_t = gt_rgb_t.unsqueeze(0)
-                if gt_depth_t.ndim == 2:
-                    gt_depth_t = gt_depth_t.unsqueeze(0)
-                if motion_mask_t.ndim == 2:
-                    motion_mask_t = motion_mask_t.unsqueeze(0)
+            # Backprop
+            total_loss.backward()
+            optimizer.step()
 
-                # final sanity print
-                print("compute_tracking_loss call shapes:")
-                print("  rendered_rgb:", tuple(rendered_rgb_t.shape), rendered_rgb_t.dtype, rendered_rgb_t.device)
-                print("  rendered_depth:", tuple(rendered_depth_t.shape), rendered_depth_t.dtype, rendered_depth_t.device)
-                print("  gt_rgb:", tuple(gt_rgb_t.shape), gt_rgb_t.dtype, gt_rgb_t.device)
-                print("  gt_depth:", tuple(gt_depth_t.shape), gt_depth_t.dtype, gt_depth_t.device)
-                print("  motion_mask:", tuple(motion_mask_t.shape), motion_mask_t.dtype, motion_mask_t.device)
+            if verbose and (iter_idx % 5 == 0 or iter_idx == self.tracking_iterations - 1):
+                print(f" Iter {iter_idx + 1}/{self.tracking_iterations}: "
+                      f"Total loss = {loss_dict['total']:.6f}")
 
-                loss, loss_dict = self.compute_tracking_loss(
-                    rendered_rgb=rendered_rgb_t,
-                    rendered_depth=rendered_depth_t,
-                    gt_rgb=gt_rgb_t,
-                    gt_depth=gt_depth_t,
-                    motion_mask=motion_mask_t
-                )
-
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_([delta], max_norm=1.0)
-                optimizer.step()
-                with torch.no_grad():
-                    delta[3:].clamp_(-5.0, 5.0)
-                loss_history.append(loss_dict)
-                if verbose and (iter_idx + 1) % 5 == 0:
-                    print(
-                        f"    Iter {iter_idx + 1}/{self.tracking_iterations}: Loss={loss_dict['total']:.6f} (RGB={loss_dict['rgb']:.4f}, SSIM={loss_dict['ssim']:.4f}, Depth={loss_dict['depth']:.4f})")
-                with torch.no_grad():
-                    final_exp = se3_exp(delta)
-                    refined_pose_matrix = (initial_pose_matrix @ final_exp).cpu().numpy()
-                tracking_info = {
-                    'initial_pose': coarse_pose,
-                    'refined_pose': refined_pose_matrix,
-                    'loss_history': loss_history,
-                    'final_loss': loss_history[-1] if len(loss_history) > 0 else None,
-                    'pose_delta': float(torch.norm(final_exp[:3, 3]).item())
-                }
-                return refined_pose_matrix, tracking_info
-
-            except Exception as e:
-                # extra debug dump if something still fails
-                try:
-                    types_shapes = {
-                        'rendered_rgb': (type(rendered_rgb), getattr(rendered_rgb, 'shape', None)),
-                        'rendered_depth': (type(rendered_depth), getattr(rendered_depth, 'shape', None)),
-                        'gt_rgb': (type(gt_rgb), getattr(gt_rgb, 'shape', None)),
-                        'gt_depth': (type(gt_depth), getattr(gt_depth, 'shape', None)),
-                        'motion_mask': (type(motion_mask_tensor), getattr(motion_mask_tensor, 'shape', None))
-                    }
-                    print("DEBUG: Pre-call raw types & shapes:", types_shapes)
-                except Exception:
-                    pass
-                print("ERROR while preparing compute_tracking_loss ->", repr(e))
-            raise
+        # After optimization, return final pose as numpy array
+        refined_pose = pose.detach().cpu().numpy()
+        return refined_pose, loss_dict
