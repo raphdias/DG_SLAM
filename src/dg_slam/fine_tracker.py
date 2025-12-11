@@ -187,7 +187,7 @@ class FineTracker:
                              gt_rgb * motion_mask.unsqueeze(1))
 
         # SSIM loss placeholder (can use pytorch_ssim or kornia)
-        ssim_loss = 1.0 - ssim_loss_fn(rendered_rgb * motion_mask.unsqueeze(1),
+        ssim_loss = 1.0 - self.ssim_loss_fn(rendered_rgb * motion_mask.unsqueeze(1),
                                        gt_rgb * motion_mask.unsqueeze(1))
 
         # Depth loss (only valid pixels)
