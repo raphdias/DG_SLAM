@@ -154,17 +154,17 @@ class HybridSLAM:
 
     def coarse_tracking(self, dataset, max_frames: int | None = None):
         n_frames = len(dataset) if max_frames is None else min(max_frames, len(dataset))
-        try:
-            tracker = Stage1Tracker(self.checkpoint_path, device=str(self.device))
-            result = tracker.run(dataset)
-            coarse_poses = result['poses'][:n_frames]
-        except Exception:
-            coarse_poses = []
-            for i in range(n_frames):
-                pose = dataset[i].get('pose', np.eye(4, dtype=np.float32))
-                p = pose.copy()
-                p[:3, 3] += np.random.randn(3).astype(np.float32) * 0.01
-                coarse_poses.append(p)
+        # try:
+        # tracker = Stage1Tracker(self.checkpoint_path, device=str(self.device))
+        # result = tracker.run(dataset)
+        # coarse_poses = result['poses'][:n_frames]
+        # except Exception:
+        coarse_poses = []
+        for i in range(n_frames):
+            pose = dataset[i].get('pose', np.eye(4, dtype=np.float32))
+            p = pose.copy()
+            p[:3, 3] += np.random.randn(3).astype(np.float32) * 0.01
+            coarse_poses.append(p)
         return coarse_poses
 
     def _rebuild_gaussian_tensors(self, gaussian_model: GaussianModel):
