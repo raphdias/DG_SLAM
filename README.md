@@ -95,9 +95,7 @@ dg_slam/
 ## NOTES
 
 - We have camera pose estimation and depth warp 
-- We need coarse stage approx. DROID-SLAM (? docker-container ?) 
-- Fine Stage Gaussian (Gaussian only have pseudo right now)
-- Verification
+- DROID-SLAM is not used
 
 ## Citation
 ```bibtex
