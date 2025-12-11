@@ -265,6 +265,7 @@ class HybridSLAM:
                     motion_mask = np.ones_like(frame['depth'], dtype=bool)
             else:
                 motion_mask = np.ones_like(frame['depth'], dtype=bool)
+            print("REFFINING")
             refined_pose, tracking_info = self.fine_tracking(frame, coarse_poses[i], motion_mask, self.gaussian_model)
             refined_poses.append(refined_pose)
             tracking_stats.append(tracking_info)
