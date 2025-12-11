@@ -188,32 +188,29 @@ class HybridSLAM:
 
             # Strategy 2: Voxel downsampling (better coverage)
             from sklearn.cluster import MiniBatchKMeans
-            try:
-                # Use clustering to get representative points
-                kmeans = MiniBatchKMeans(n_clusters=MAX_INITIAL_GAUSSIANS,
-                                         batch_size=1000,
-                                         random_state=0,
-                                         n_init=3)
-                kmeans.fit(points_world)
-                points_world = kmeans.cluster_centers_
+            # Use clustering to get representative points
+            kmeans = MiniBatchKMeans(n_clusters=MAX_INITIAL_GAUSSIANS,
+                                     batch_size=1000,
+                                     random_state=0,
+                                     n_init=3)
+            kmeans.fit(points_world)
 
-                # Get average color per cluster
-                labels = kmeans.predict(points_world)
-                colors_new = np.zeros((MAX_INITIAL_GAUSSIANS, 3))
-                for i in range(MAX_INITIAL_GAUSSIANS):
-                    mask = labels == i
-                    if mask.sum() > 0:
-                        colors_new[i] = colors[mask].mean(axis=0)
-                colors = colors_new
+            # Get labels for ORIGINAL points (before clustering)
+            labels = kmeans.labels_  # This is the correct way to get labels
 
-                print(f"  Used k-means clustering for better coverage")
+            # Get cluster centers and average colors
+            points_world = kmeans.cluster_centers_
+            colors_new = np.zeros((MAX_INITIAL_GAUSSIANS, 3))
 
-            except ImportError:
-                # Fallback: simple random sampling
-                print(f"  sklearn not available, using random sampling")
-                indices = np.random.choice(len(points_world), MAX_INITIAL_GAUSSIANS, replace=False)
-                points_world = points_world[indices]
-                colors = colors[indices]
+            for i in range(MAX_INITIAL_GAUSSIANS):
+                mask = labels == i
+                if mask.sum() > 0:
+                    colors_new[i] = colors[mask].mean(axis=0)
+                else:
+                    # Cluster has no points, use random color
+                    colors_new[i] = colors[np.random.randint(len(colors))]
+
+            colors = colors_new
 
         print(f"  Final point count: {len(points_world)}")
 
@@ -508,20 +505,45 @@ s
         for frame_idx in range(n_frames):
             frame = dataset[frame_idx]
 
+            print(f"\n{'=' * 60}")
+            print(f"Processing frame {frame_idx + 1}/{n_frames}")
+            print(f"{'=' * 60}")
+
+            # Clear CUDA cache before each frame
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                mem_gb = torch.cuda.memory_allocated() / 1e9
+                print(f"GPU memory: {mem_gb:.2f} GB")
+
+            # Validate frame
+            if frame['rgb'] is None or frame['depth'] is None:
+                print(f"  ERROR: Frame {frame_idx} has missing data")
+                refined_poses.append(coarse_poses[frame_idx])
+                continue
+
             # Check if keyframe
-            if self.keyframe_selector.should_add_keyframe(frame):
+            is_keyframe = self.keyframe_selector.should_add_keyframe(frame)
+            print(f"  Keyframe: {is_keyframe} (total: {len(self.keyframe_selector.keyframes)})")
+
+            if is_keyframe:
                 self.keyframe_selector.add_keyframe(frame)
 
                 # Generate motion mask for keyframe
                 if use_motion_masks and len(self.keyframe_selector.keyframes) > 1:
-                    keyframe_window = self.keyframe_selector.get_associated_keyframes(
-                        len(self.keyframe_selector.keyframes) - 1
-                    )
-                    motion_mask = self.motion_mask_generator.generate_motion_mask(
-                        frame,
-                        keyframe_window,
-                        use_semantic=True
-                    )
+                    try:
+                        keyframe_window = self.keyframe_selector.get_associated_keyframes(
+                            len(self.keyframe_selector.keyframes) - 1
+                        )
+                        motion_mask = self.motion_mask_generator.generate_motion_mask(
+                            frame,
+                            keyframe_window,
+                            use_semantic=True
+                        )
+                        static_ratio = motion_mask.sum() / motion_mask.size
+                        print(f"  Motion mask: {static_ratio * 100:.1f}% static pixels")
+                    except Exception as e:
+                        print(f"  WARNING: Motion mask generation failed: {e}")
+                        motion_mask = np.ones_like(frame['depth'], dtype=bool)
                 else:
                     # First keyframe or no motion masking
                     motion_mask = np.ones_like(frame['depth'], dtype=bool)
@@ -529,16 +551,71 @@ s
                 # Use mask from last keyframe
                 motion_mask = np.ones_like(frame['depth'], dtype=bool)
 
-            # Fine tracking
-            refined_pose, tracking_info = self.fine_tracking(
-                frame,
-                coarse_poses[frame_idx],
-                motion_mask,
-                self.gaussian_model
-            )
-            refined_poses.append(refined_pose)
-            tracking_stats.append(tracking_info)
+            # Validate Gaussian model before rendering
+            try:
+                n_gaussians = len(self.gaussian_model.gaussians)
+                xyz = self.gaussian_model.get_xyz()
+                print(f"  Gaussians: {n_gaussians}")
+                print(f"  xyz shape: {xyz.shape}, device: {xyz.device}")
 
+                if n_gaussians == 0:
+                    raise ValueError("Gaussian model is empty!")
+
+                if torch.isnan(xyz).any() or torch.isinf(xyz).any():
+                    raise ValueError("Gaussian positions contain NaN/Inf!")
+
+            except Exception as e:
+                print(f"  ERROR: Invalid Gaussian model: {e}")
+                refined_poses.append(coarse_poses[frame_idx])
+                tracking_stats.append({'error': str(e), 'pose_delta': 0, 'final_loss': {'total': float('inf')}})
+                continue
+
+            # Fine tracking with comprehensive error handling
+            try:
+                print(f"  Starting fine tracking...")
+                refined_pose, tracking_info = self.fine_tracking(
+                    frame,
+                    coarse_poses[frame_idx],
+                    motion_mask,
+                    self.gaussian_model
+                )
+
+                # Validate output
+                if np.isnan(refined_pose).any() or np.isinf(refined_pose).any():
+                    raise ValueError("Refined pose contains NaN/Inf")
+
+                refined_poses.append(refined_pose)
+                tracking_stats.append(tracking_info)
+
+                print(f"  ✓ Fine tracking complete: loss={tracking_info['final_loss']['total']:.6f}")
+
+            except RuntimeError as e:
+                error_msg = str(e)
+                print(f"  ✗ RuntimeError during fine tracking: {error_msg[:200]}")
+
+                if "CUDA" in error_msg or "memory" in error_msg.lower():
+                    print(f"  This is a GPU memory or CUDA kernel error")
+                    print(f"  Possible causes:")
+                    print(f"    - Too many Gaussians ({n_gaussians})")
+                    print(f"    - Invalid Gaussian parameters")
+                    print(f"    - CUDA kernel launch failure")
+
+                # Use coarse pose as fallback
+                refined_poses.append(coarse_poses[frame_idx])
+                tracking_stats.append({
+                    'error': error_msg,
+                    'pose_delta': 0,
+                    'final_loss': {'total': float('inf')}
+                })
+
+            except Exception as e:
+                print(f"  ✗ Unexpected error: {type(e).__name__}: {str(e)[:200]}")
+                refined_poses.append(coarse_poses[frame_idx])
+                tracking_stats.append({
+                    'error': str(e),
+                    'pose_delta': 0,
+                    'final_loss': {'total': float('inf')}
+                })
             # Update map for keyframes
             # if len(self.keyframe_selector.keyframes) > 0 and \
             #    self.keyframe_selector.keyframes[-1] == frame:
