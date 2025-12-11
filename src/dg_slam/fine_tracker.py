@@ -6,11 +6,13 @@ from dg_slam.gaussian.graphics_utils import getProjectionMatrix, focal2fov
 from dg_slam.gaussian.gaussian_render import render
 
 
-def _skew(v: torch.Tensor) -> torch.Tensor:
-    v = v.view(-1)
-    return torch.tensor([[0.0, -v[2], v[1]],
-                         [v[2], 0.0, -v[0]],
-                         [-v[1], v[0], 0.0]], device=v.device, dtype=v.dtype)
+def _skew_symmetric(v):
+    zero = torch.zeros(1, dtype=v.dtype, device=v.device)
+    return torch.stack([
+        torch.stack([zero, -v[2], v[1]]),
+        torch.stack([v[2], zero, -v[0]]),
+        torch.stack([-v[1], v[0], zero])
+    ])
 
 
 def se3_exp(xi: torch.Tensor) -> torch.Tensor:
@@ -20,11 +22,11 @@ def se3_exp(xi: torch.Tensor) -> torch.Tensor:
     dtype = xi.dtype
     device = xi.device
     if theta.item() < 1e-8:
-        R = torch.eye(3, device=device, dtype=dtype) + _skew(omega)
-        V = torch.eye(3, device=device, dtype=dtype) + 0.5 * _skew(omega)
+        R = torch.eye(3, device=device, dtype=dtype) + _skew_symmetric(omega)
+        V = torch.eye(3, device=device, dtype=dtype) + 0.5 * _skew_symmetric(omega)
     else:
         axis = omega / theta
-        K = _skew(axis)
+        K = _skew_symmetric(axis)
         R = torch.eye(3, device=device, dtype=dtype) + torch.sin(theta) * K + (1 - torch.cos(theta)) * (K @ K)
         A = torch.sin(theta) / theta
         B = (1 - torch.cos(theta)) / (theta * theta)

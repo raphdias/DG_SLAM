@@ -249,6 +249,7 @@ class HybridSLAM:
 
     def run(self, dataset, max_frames: int | None = None, use_motion_masks: bool = True):
         n_frames = len(dataset) if max_frames is None else min(max_frames, len(dataset))
+        print("REFFINING4")
         coarse_poses = self.coarse_tracking(dataset, max_frames)
         first_frame = dataset[0]
         print("REFFINING3")
